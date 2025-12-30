@@ -85,22 +85,22 @@ export const ModelManagement = () => {
     }, 2000);
   };
 
-  const handleAddModel = () => {
+  const handleAddModel = (data: Partial<ModelConfig>) => {
     const newModel: ModelConfig = {
       id: `model-${Date.now()}`,
-      name: "新模型",
-      provider: "Custom",
-      endpoint: "",
-      apiKey: "",
-      modelName: "",
-      modelVersion: "latest",
+      name: data.name || "新模型",
+      provider: data.provider || "Custom",
+      endpoint: data.endpoint || "",
+      apiKey: data.apiKey || "",
+      modelName: data.modelName || "",
+      modelVersion: data.modelVersion || "latest",
       status: "inactive",
-      maxTokens: 4096,
-      temperature: 0.7,
-      topP: 1.0,
-      frequencyPenalty: 0,
-      presencePenalty: 0,
-      description: "",
+      maxTokens: data.maxTokens || 4096,
+      temperature: data.temperature || 0.7,
+      topP: data.topP || 1.0,
+      frequencyPenalty: data.frequencyPenalty || 0,
+      presencePenalty: data.presencePenalty || 0,
+      description: data.description || "",
       lastTested: "未测试"
     };
     setModels([...models, newModel]);
@@ -132,7 +132,7 @@ export const ModelManagement = () => {
                   <DialogTitle>添加新模型</DialogTitle>
                   <DialogDescription>配置新的AI模型（仅支持OpenAI格式）</DialogDescription>
                 </DialogHeader>
-                <ModelForm onSave={() => setIsAddDialogOpen(false)} />
+                <ModelForm onSave={handleAddModel} />
               </DialogContent>
             </Dialog>
           </div>
