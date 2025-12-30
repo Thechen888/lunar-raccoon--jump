@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Trash2, Upload, RefreshCw, Search, Database, File } from "lucide-react";
+import { FileText, Plus, Trash2, Upload, RefreshCw, Search, Database, File, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 interface OriginalDocument {
@@ -163,6 +163,12 @@ export const DocumentManagement = () => {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<DocumentCollection | null>(null);
+  const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string }>({
+    name: "",
+    type: "",
+    description: ""
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set());
@@ -207,6 +213,33 @@ export const DocumentManagement = () => {
     setCollections([...collections, newCollection]);
     setIsAddCollectionDialogOpen(false);
     toast.success("文档集已创建");
+  };
+
+  const handleEditClick = (collection: DocumentCollection) => {
+    setEditingCollection(collection);
+    setEditFormData({
+      name: collection.name,
+      type: collection.type,
+      description: collection.description
+    });
+  };
+
+  const handleEditSave = () => {
+    if (editingCollection) {
+      setCollections(collections.map(c => 
+        c.id === editingCollection.id 
+          ? { 
+              ...c, 
+              name: editFormData.name, 
+              type: editFormData.type, 
+              description: editFormData.description,
+              lastUpdated: new Date().toISOString().split('T')[0]
+            } 
+          : c
+      ));
+      setEditingCollection(null);
+      toast.success("文档集已更新");
+    }
   };
 
   const handleUploadDocuments = () => {
@@ -366,7 +399,8 @@ export const DocumentManagement = () => {
                           ))}
                         </div>
                         <div className="flex space-x-2 mt-4">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClick(collection)}>
+                            <Edit className="h-4 w-4 mr-1" />
                             编辑
                           </Button>
                           <Button 
@@ -578,6 +612,60 @@ export const DocumentManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Collection Dialog */}
+      <Dialog open={editingCollection !== null} onOpenChange={() => setEditingCollection(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑文档集</DialogTitle>
+            <DialogDescription>
+              编辑文档集的名称、类型和描述
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>名称</Label>
+              <Input
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                placeholder="输入文档集名称"
+              />
+            </div>
+            <div>
+              <Label>类型</Label>
+              <Select
+                value={editFormData.type}
+                onValueChange={(value) => setEditFormData({ ...editFormData, type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="选择类型" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="技术文档">技术文档</SelectItem>
+                  <SelectItem value="业务文档">业务文档</SelectItem>
+                  <SelectItem value="法律文档">法律文档</SelectItem>
+                  <SelectItem value="知识库">知识库</SelectItem>
+                  <SelectItem value="通用">通用</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>描述</Label>
+              <Textarea
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                placeholder="描述这个文档集的用途"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingCollection(null)}>
+              取消
+            </Button>
+            <Button onClick={handleEditSave}>保存</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
