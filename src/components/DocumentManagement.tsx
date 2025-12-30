@@ -163,6 +163,11 @@ export const DocumentManagement = () => {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploadFormData, setUploadFormData] = useState({
+    collectionId: "",
+    tags: [] as string[],
+    description: ""
+  });
   const [editingCollection, setEditingCollection] = useState<DocumentCollection | null>(null);
   const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string }>({
     name: "",
@@ -243,17 +248,49 @@ export const DocumentManagement = () => {
   };
 
   const handleUploadDocuments = () => {
+    if (!uploadFormData.collectionId) {
+      toast.error("请选择文档集");
+      return;
+    }
+    
     setProcessing(true);
     setTimeout(() => {
+      const newDocument: OriginalDocument = {
+        id: `doc-${Date.now()}`,
+        name: "新上传文档.pdf",
+        type: "PDF",
+        size: Math.floor(Math.random() * 5000000),
+        uploadDate: new Date().toISOString().split('T')[0],
+        status: "processed",
+        tags: uploadFormData.tags,
+        collectionId: uploadFormData.collectionId
+      };
+      
+      setDocuments([...documents, newDocument]);
+      setCollections(collections.map(c => 
+        c.id === uploadFormData.collectionId 
+          ? { ...c, documentCount: c.documentCount + 1 }
+          : c
+      ));
+      
       setProcessing(false);
       setIsUploadDialogOpen(false);
+      setUploadFormData({ collectionId: "", tags: [], description: "" });
       toast.success("文档上传成功");
     }, 2000);
   };
 
   const handleDeleteDocument = (docId: string) => {
-    setDocuments(documents.filter(d => d.id !== docId));
-    toast.success("文档已删除");
+    const doc = documents.find(d => d.id === docId);
+    if (doc) {
+      setDocuments(documents.filter(d => d.id !== docId));
+      setCollections(collections.map(c => 
+        c.id === doc.collectionId 
+          ? { ...c, documentCount: Math.max(0, c.documentCount - 1) }
+          : c
+      ));
+      toast.success("文档已删除");
+    }
   };
 
   const handleDeleteCollection = (collectionId: string) => {
@@ -436,10 +473,73 @@ export const DocumentManagement = () => {
                     <RefreshCw className={`h-4 w-4 mr-2 ${processing ? "animate-spin" : ""}`} />
                     重新索引
                   </Button>
-                  <Button onClick={() => setIsUploadDialogOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    上传文档
-                  </Button>
+                  <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Upload className="h-4 w-4 mr-2" />
+                        上传文档
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>上传文档</DialogTitle>
+                        <DialogDescription>
+                          上传新的文档到指定的文档集
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>选择文档集</Label>
+                          <Select
+                            value={uploadFormData.collectionId}
+                            onValueChange={(value) => setUploadFormData({ ...uploadFormData, collectionId: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="选择文档集" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {collections.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>标签（用逗号分隔）</Label>
+                          <Input
+                            placeholder="例如：技术, React, 前端"
+                            value={uploadFormData.tags.join(", ")}
+                            onChange={(e) => setUploadFormData({ ...uploadFormData, tags: e.target.value.split(",").map(t => t.trim()).filter(t => t) })}
+                          />
+                        </div>
+                        <div>
+                          <Label>描述</Label>
+                          <Textarea
+                            placeholder="文档描述..."
+                            value={uploadFormData.description}
+                            onChange={(e) => setUploadFormData({ ...uploadFormData, description: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label>文件</Label>
+                          <div className="mt-2">
+                            <Input type="file" className="cursor-pointer" />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            支持的格式：PDF, DOCX, PPTX, TXT
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+                          取消
+                        </Button>
+                        <Button onClick={handleUploadDocuments} disabled={processing}>
+                          {processing ? "上传中..." : "上传"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </CardHeader>
