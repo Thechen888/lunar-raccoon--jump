@@ -15,12 +15,16 @@ import { MCPEditor } from "./MCPEditor";
 interface Region {
   id: string;
   name: string;
+  endpoint?: string;
 }
 
 interface ComplexityLevel {
   id: string;
   name: string;
   description: string;
+  maxTokens?: number;
+  temperature?: number;
+  topP?: number;
 }
 
 interface MCPType {
@@ -29,6 +33,17 @@ interface MCPType {
   description: string;
   regions: Region[];
   complexityLevels: ComplexityLevel[];
+  apiKey?: string;
+  apiSecret?: string;
+  baseUrl?: string;
+  apiVersion?: string;
+  modelName?: string;
+  authType?: "bearer" | "api-key" | "basic" | "custom";
+  timeout?: number;
+  retryCount?: number;
+  qpsLimit?: number;
+  quotaLimit?: number;
+  status: "active" | "inactive";
 }
 
 export const MCPManagement = () => {
@@ -38,30 +53,50 @@ export const MCPManagement = () => {
       name: "PANGU",
       description: "华为盘古大模型",
       regions: [
-        { id: "china", name: "中国" },
-        { id: "europe", name: "欧洲" },
-        { id: "usa", name: "美国" }
+        { id: "china", name: "中国", endpoint: "https://api.pangu.huawei.com/china" },
+        { id: "europe", name: "欧洲", endpoint: "https://api.pangu.huawei.com/europe" },
+        { id: "usa", name: "美国", endpoint: "https://api.pangu.huawei.com/usa" }
       ],
       complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能，快速响应" },
-        { id: "medium", name: "一般", description: "标准功能，平衡性能" },
-        { id: "complex", name: "复杂", description: "高级功能，深度分析" },
-        { id: "full", name: "完全", description: "完整功能，最高精度" }
-      ]
+        { id: "simple", name: "精简", description: "基础功能，快速响应", maxTokens: 2000, temperature: 0.7, topP: 1.0 },
+        { id: "medium", name: "一般", description: "标准功能，平衡性能", maxTokens: 4096, temperature: 0.5, topP: 0.9 },
+        { id: "complex", name: "复杂", description: "高级功能，深度分析", maxTokens: 8000, temperature: 0.3, topP: 0.9 },
+        { id: "full", name: "完全", description: "完整功能，最高精度", maxTokens: 16000, temperature: 0.1, topP: 0.8 }
+      ],
+      apiKey: "sk-********",
+      baseUrl: "https://api.pangu.huawei.com",
+      apiVersion: "v1",
+      modelName: "pangu-3-200k",
+      authType: "bearer",
+      timeout: 30,
+      retryCount: 3,
+      qpsLimit: 10,
+      quotaLimit: 10000,
+      status: "active"
     },
     {
       id: "ecohub",
       name: "EcoHub",
       description: "EcoHub 生态系统",
       regions: [
-        { id: "main", name: "主节点" }
+        { id: "main", name: "主节点", endpoint: "https://api.ecohub.com" }
       ],
       complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能" },
-        { id: "medium", name: "一般", description: "标准功能" },
-        { id: "complex", name: "复杂", description: "高级功能" },
-        { id: "full", name: "完全", description: "完整功能" }
-      ]
+        { id: "simple", name: "精简", description: "基础功能", maxTokens: 2000, temperature: 0.7, topP: 1.0 },
+        { id: "medium", name: "一般", description: "标准功能", maxTokens: 4096, temperature: 0.5, topP: 0.9 },
+        { id: "complex", name: "复杂", description: "高级功能", maxTokens: 8000, temperature: 0.3, topP: 0.9 },
+        { id: "full", name: "完全", description: "完整功能", maxTokens: 16000, temperature: 0.1, topP: 0.8 }
+      ],
+      apiKey: "sk-********",
+      baseUrl: "https://api.ecohub.com",
+      apiVersion: "v1",
+      modelName: "ecohub-pro",
+      authType: "bearer",
+      timeout: 30,
+      retryCount: 3,
+      qpsLimit: 5,
+      quotaLimit: 5000,
+      status: "active"
     }
   ]);
 
@@ -80,7 +115,17 @@ export const MCPManagement = () => {
       name: "新MCP服务",
       description: "",
       regions: [],
-      complexityLevels: []
+      complexityLevels: [],
+      apiKey: "",
+      baseUrl: "",
+      apiVersion: "v1",
+      modelName: "",
+      authType: "bearer",
+      timeout: 30,
+      retryCount: 3,
+      qpsLimit: 10,
+      quotaLimit: 10000,
+      status: "active"
     };
     setMcpTypes([...mcpTypes, newType]);
     setIsAddDialogOpen(false);
@@ -115,7 +160,7 @@ export const MCPManagement = () => {
                     <Server className="h-5 w-5" />
                     <span>MCP 服务管理</span>
                   </CardTitle>
-                  <CardDescription>管理MCP服务的名称、区域和复杂度等级</CardDescription>
+                  <CardDescription>管理MCP服务的完整配置</CardDescription>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
@@ -127,11 +172,11 @@ export const MCPManagement = () => {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>添加新MCP服务</DialogTitle>
-                      <DialogDescription>创建一个新的MCP服务</DialogDescription>
+                      <DialogDescription>创建一个新的MCP服务（添加后请在编辑中配置详细信息）</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div>
-                        <Label>服务名称</Label>
+                        <Label>服务名称 <span className="text-red-500">*</span></Label>
                         <Input placeholder="例如：Claude" />
                       </div>
                       <div>
@@ -178,7 +223,7 @@ export const MCPManagement = () => {
 
       {editingType && (
         <Dialog open={true} onOpenChange={() => setEditingType(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>编辑 MCP 服务 - {editingType.name}</DialogTitle>
             </DialogHeader>
