@@ -187,70 +187,69 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader className="flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <MessageSquare className="h-5 w-5" />
-            <span>对话区域</span>
-          </CardTitle>
-          <div className="flex items-center space-x-2 flex-wrap gap-y-2">
-            {chatConfig.mode === "llm" && (
-              <>
-                <Badge variant="outline" className="text-xs">LLM 模式</Badge>
-                {availableModels.find(m => m.id === chatConfig.modelId) && (
-                  <Badge variant="secondary" className="text-xs">
-                    {availableModels.find(m => m.id === chatConfig.modelId)?.name}
-                  </Badge>
-                )}
-              </>
-            )}
-            {chatConfig.mode === "knowledge" && (
-              <>
-                <Badge variant="outline" className="text-xs">知识库模式</Badge>
-                {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId) && (
-                  <Badge variant="secondary" className="text-xs">
-                    {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId)?.name}
-                  </Badge>
-                )}
-                {availableModels.find(m => m.id === chatConfig.modelId) && (
-                  <Badge variant="outline" className="text-xs">
-                    {availableModels.find(m => m.id === chatConfig.modelId)?.name}
-                  </Badge>
-                )}
-              </>
-            )}
-            {selectedMCPs.map((mcp) => {
-              const provider = mcpProviders.find(p => p.id === mcp.provider);
-              const providerName = provider?.name || mcp.provider;
-              const regionNames = mcp.regions.map(r => provider?.regions.find(reg => reg.id === r)?.name || r).join(", ");
-              const complexityName = provider?.complexityLevels.find(c => c.id === mcp.complexity)?.name || mcp.complexity;
-              return (
-                <Badge key={mcp.provider} variant="outline" className="text-xs">
-                  {providerName} / {regionNames} / {complexityName}
-                </Badge>
-              );
-            })}
-            {selectedDoc && (
+    <div className="flex flex-col h-full">
+      {/* Chat Messages Area */}
+      <ScrollArea className="flex-1 px-6 py-4" ref={scrollRef}>
+        <div className="space-y-6 max-w-4xl mx-auto">
+          {messages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))}
+          {isLoading && <LoadingIndicator />}
+        </div>
+      </ScrollArea>
+
+      {/* Chat Config Info Bar */}
+      <div className="border-t bg-slate-50 dark:bg-slate-800/50 px-6 py-3 flex items-center space-x-2 flex-wrap gap-y-2">
+        {chatConfig.mode === "llm" && (
+          <>
+            <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              LLM 模式
+            </Badge>
+            {availableModels.find(m => m.id === chatConfig.modelId) && (
               <Badge variant="secondary" className="text-xs">
-                {selectedDoc.vectorDb} / {selectedDoc.dbAddress} / {selectedDoc.complexity}
+                {availableModels.find(m => m.id === chatConfig.modelId)?.name}
               </Badge>
             )}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
-            {isLoading && <LoadingIndicator />}
-          </div>
-        </ScrollArea>
-        <ChatInput disabled={isLoading} onSend={handleSend} />
-      </CardContent>
-    </Card>
+          </>
+        )}
+        {chatConfig.mode === "knowledge" && (
+          <>
+            <Badge variant="outline" className="text-xs bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
+              知识库模式
+            </Badge>
+            {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId) && (
+              <Badge variant="secondary" className="text-xs">
+                {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId)?.name}
+              </Badge>
+            )}
+            {availableModels.find(m => m.id === chatConfig.modelId) && (
+              <Badge variant="outline" className="text-xs">
+                {availableModels.find(m => m.id === chatConfig.modelId)?.name}
+              </Badge>
+            )}
+          </>
+        )}
+        {selectedMCPs.map((mcp) => {
+          const provider = mcpProviders.find(p => p.id === mcp.provider);
+          const providerName = provider?.name || mcp.provider;
+          const regionNames = mcp.regions.map(r => provider?.regions.find(reg => reg.id === r)?.name || r).join(", ");
+          const complexityName = provider?.complexityLevels.find(c => c.id === mcp.complexity)?.name || mcp.complexity;
+          return (
+            <Badge key={mcp.provider} variant="outline" className="text-xs">
+              {providerName} / {regionNames} / {complexityName}
+            </Badge>
+          );
+        })}
+        {selectedDoc && (
+          <Badge variant="secondary" className="text-xs">
+            {selectedDoc.vectorDb} / {selectedDoc.dbAddress} / {selectedDoc.complexity}
+          </Badge>
+        )}
+      </div>
+
+      {/* Chat Input */}
+      <ChatInput disabled={isLoading} onSend={handleSend} />
+    </div>
   );
 };
 
