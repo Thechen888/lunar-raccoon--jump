@@ -83,6 +83,8 @@ const Index = () => {
           <ChatArea
             selectedMCPs={selectedMCPs}
             selectedDoc={selectedDoc}
+            onMCPSelect={handleMCPSelect}
+            onDocSelect={handleDocSelect}
           />
         </TabsContent>
 

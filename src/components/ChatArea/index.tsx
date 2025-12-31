@@ -87,9 +87,11 @@ interface DocumentCollection {
 interface ChatAreaProps {
   selectedMCPs: MCPSelection[];
   selectedDoc: DocumentSelection | null;
+  onMCPSelect: (selections: MCPSelection[]) => void;
+  onDocSelect: (selection: DocumentSelection | null) => void;
 }
 
-export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
+export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }: ChatAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -239,7 +241,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
                   </AccordionTrigger>
                   <AccordionContent className="pb-4">
                     <MCPSelector
-                      onSelect={setSelectedMCPs}
+                      onSelect={onMCPSelect}
                       selectedMCPs={selectedMCPs}
                     />
                   </AccordionContent>
@@ -252,7 +254,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
                   </AccordionTrigger>
                   <AccordionContent className="pb-4">
                     <DocumentSelector
-                      onSelect={setSelectedDoc}
+                      onSelect={onDocSelect}
                       selectedDoc={selectedDoc}
                     />
                   </AccordionContent>
