@@ -1,14 +1,10 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { MessageSquare, FileText, Settings, Server, Lock, Cpu } from "lucide-react";
-import { MCPSelector } from "@/components/MCPSelector";
+import { MessageSquare, FileText, Server, Lock, Cpu } from "lucide-react";
 import { MCPSelection } from "@/components/MCPSelector";
-import { DocumentSelector } from "@/components/DocumentSelector";
 import { DocumentSelection } from "@/components/DocumentSelector";
-import { ChatArea, ChatConfig } from "@/components/ChatArea";
+import { ChatArea } from "@/components/ChatArea";
 import { UserPermissions } from "@/components/UserPermissions";
 import { MCPManagement } from "@/components/MCPManagement";
 import { DocumentManagement } from "@/components/DocumentManagement";
@@ -53,7 +49,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -83,36 +79,11 @@ const Index = () => {
         </TabsList>
 
         {/* Chat Tab */}
-        <TabsContent value="chat" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Panel - Configuration */}
-            <div className="lg:col-span-1 space-y-4">
-              <ChatConfig
-                models={[
-                  { id: "model-1", name: "GPT-4 主模型", provider: "OpenAI" },
-                  { id: "model-2", name: "GPT-3.5 Turbo", provider: "OpenAI" }
-                ]}
-                documentCollections={[
-                  { id: "tech-docs-cn", name: "技术文档-中文", type: "技术文档" },
-                  { id: "business-docs-cn", name: "业务文档-中文", type: "业务文档" },
-                  { id: "legal-docs-eu", name: "法律文档-欧洲", type: "法律文档" },
-                  { id: "knowledge-base", name: "知识库", type: "知识库" }
-                ]}
-                onConfigChange={(config) => {
-                  console.log("Chat config changed:", config);
-                }}
-              />
-              <Separator />
-              <MCPSelector onSelect={handleMCPSelect} selectedMCPs={selectedMCPs} />
-              <Separator />
-              <DocumentSelector onSelect={handleDocSelect} selectedDoc={selectedDoc} />
-            </div>
-
-            {/* Right Panel - Chat Area */}
-            <div className="lg:col-span-2">
-              <ChatArea selectedMCPs={selectedMCPs} selectedDoc={selectedDoc} />
-            </div>
-          </div>
+        <TabsContent value="chat">
+          <ChatArea
+            selectedMCPs={selectedMCPs}
+            selectedDoc={selectedDoc}
+          />
         </TabsContent>
 
         {/* MCP Management Tab */}

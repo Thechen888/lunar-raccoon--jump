@@ -1,12 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { FileText, Plus } from "lucide-react";
 import { useState } from "react";
-import { VectorDBSelector } from "./VectorDBSelector";
-import { VectorDBComplexityItem } from "./VectorDBComplexityItem";
 
 export type DocumentSelection = {
   vectorDb: string;
@@ -76,20 +74,10 @@ interface DocumentSelectorProps {
 
 export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProps) => {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [expandedDatabases, setExpandedDatabases] = useState<Set<string>>(new Set(["china"]));
+  const [selectedDbId, setSelectedDbId] = useState<string | null>(null);
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customAddress, setCustomAddress] = useState("");
-
-  const toggleExpand = (dbId: string) => {
-    const newExpanded = new Set(expandedDatabases);
-    if (newExpanded.has(dbId)) {
-      newExpanded.delete(dbId);
-    } else {
-      newExpanded.add(dbId);
-    }
-    setExpandedDatabases(newExpanded);
-  };
 
   const handleSelect = (providerId: string, dbId: string, complexity: string, address: string) => {
     const selection: DocumentSelection = {
@@ -116,24 +104,33 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span>向量数据库选择</span>
-            </CardTitle>
-            <CardDescription>选择向量数据库提供商、区域和复杂度</CardDescription>
-          </div>
+    <div className="space-y-4">
+      {/* 提供商选择 */}
+      <div>
+        <Label className="text-xs font-medium mb-2 block">提供商</Label>
+        <div className="flex flex-wrap gap-2">
+          {vectorDbProviders.map((provider) => (
+            <Button
+              key={provider.id}
+              variant={selectedProvider === provider.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setSelectedProvider(provider.id);
+                setSelectedDbId(null);
+              }}
+              className="h-8 text-xs"
+            >
+              {provider.name}
+            </Button>
+          ))}
           <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
+              <Button size="sm" variant="outline" className="h-8 text-xs">
+                <Plus className="h-3 w-3 mr-1" />
                 自定义
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>添加自定义向量数据库</DialogTitle>
                 <DialogDescription>配置自定义向量数据库地址</DialogDescription>
@@ -165,79 +162,59 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
             </DialogContent>
           </Dialog>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium mb-2 block">提供商</Label>
-            <div className="flex flex-wrap gap-2">
-              {vectorDbProviders.map((provider) => (
-                <Button
-                  key={provider.id}
-                  variant={selectedProvider === provider.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setSelectedProvider(provider.id);
-                    setExpandedDatabases(new Set());
-                  }}
-                >
-                  {provider.name}
-                </Button>
-              ))}
-            </div>
-          </div>
+      </div>
 
-          {selectedProvider && (
-            <div className="border-t pt-4">
-              <VectorDBSelector
-                databases={vectorDbProviders.find((p) => p.id === selectedProvider)?.databases || []}
-                expandedDatabases={expandedDatabases}
-                onToggleExpand={toggleExpand}
-              />
-              {vectorDbProviders
-                .find((p) => p.id === selectedProvider)
-                ?.databases.map((db) => (
-                  expandedDatabases.has(db.id) && (
-                    <div key={db.id} className="border-t bg-background p-3 space-y-2 mt-0">
-                      {db.complexityOptions.map((option) => (
-                        <VectorDBComplexityItem
-                          key={option.name}
-                          dbId={db.id}
-                          complexity={option.name}
-                          dbAddress={option.address}
-                          isSelected={
-                            selectedDoc?.vectorDb === selectedProvider &&
-                            selectedDoc?.dbAddress === option.address &&
-                            selectedDoc?.complexity === option.name
-                          }
-                          onSelect={(dbId, complexity) => handleSelect(selectedProvider, dbId, complexity, option.address)}
-                        />
-                      ))}
-                    </div>
-                  )
-                ))}
-            </div>
-          )}
-
-          {selectedDoc && selectedDoc.vectorDb === "custom" && (
-            <div className="border-t pt-4 p-3 bg-primary/5 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{selectedDoc.dbAddress}</div>
-                  <div className="text-xs text-muted-foreground">{selectedDoc.customAddress}</div>
+      {/* 数据库和复杂度选择 */}
+      {selectedProvider && (
+        <div className="space-y-2">
+          {vectorDbProviders
+            .find((p) => p.id === selectedProvider)
+            ?.databases.map((db) => (
+              <div key={db.id} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium">{db.name}</Label>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onSelect(null)}
-                >
-                  移除
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  {db.complexityOptions.map((option) => (
+                    <div
+                      key={option.name}
+                      className={`p-2 border rounded-md cursor-pointer transition-colors text-xs ${
+                        selectedDoc?.vectorDb === selectedProvider &&
+                        selectedDoc?.dbAddress === option.address &&
+                        selectedDoc?.complexity === option.name
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() => handleSelect(selectedProvider, db.id, option.name, option.address)}
+                    >
+                      <div className="font-medium text-center">{option.name}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            ))}
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* 已选摘要 */}
+      {selectedDoc && selectedDoc.vectorDb === "custom" && (
+        <div className="border-t pt-3">
+          <div className="flex items-center justify-between p-2 bg-primary/5 rounded-md">
+            <div>
+              <div className="text-xs font-medium">{selectedDoc.dbAddress}</div>
+              <div className="text-xs text-muted-foreground scale-75 origin-left">{selectedDoc.customAddress}</div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSelect(null)}
+              className="h-6 w-6 p-0"
+            >
+              ×
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
