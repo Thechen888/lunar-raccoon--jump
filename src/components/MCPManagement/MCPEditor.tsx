@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Region {
@@ -20,9 +19,6 @@ interface ComplexityLevel {
   id: string;
   name: string;
   description: string;
-  maxTokens?: number;
-  temperature?: number;
-  topP?: number;
 }
 
 interface MCPType {
@@ -32,15 +28,7 @@ interface MCPType {
   regions: Region[];
   complexityLevels: ComplexityLevel[];
   apiKey?: string;
-  apiSecret?: string;
   baseUrl?: string;
-  apiVersion?: string;
-  modelName?: string;
-  authType?: "bearer" | "api-key" | "basic" | "custom";
-  timeout?: number;
-  retryCount?: number;
-  qpsLimit?: number;
-  quotaLimit?: number;
   status: "active" | "inactive";
 }
 
@@ -56,15 +44,7 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
   const [regions, setRegions] = useState<Region[]>(mcpType.regions);
   const [complexityLevels, setComplexityLevels] = useState<ComplexityLevel[]>(mcpType.complexityLevels);
   const [apiKey, setApiKey] = useState(mcpType.apiKey || "");
-  const [apiSecret, setApiSecret] = useState(mcpType.apiSecret || "");
   const [baseUrl, setBaseUrl] = useState(mcpType.baseUrl || "");
-  const [apiVersion, setApiVersion] = useState(mcpType.apiVersion || "v1");
-  const [modelName, setModelName] = useState(mcpType.modelName || "");
-  const [authType, setAuthType] = useState<"bearer" | "api-key" | "basic" | "custom">(mcpType.authType || "bearer");
-  const [timeout, setTimeout] = useState(mcpType.timeout || 30);
-  const [retryCount, setRetryCount] = useState(mcpType.retryCount || 3);
-  const [qpsLimit, setQpsLimit] = useState(mcpType.qpsLimit || 10);
-  const [quotaLimit, setQuotaLimit] = useState(mcpType.quotaLimit || 10000);
   const [status, setStatus] = useState<"active" | "inactive">(mcpType.status || "active");
   const [showApiKey, setShowApiKey] = useState(false);
 
@@ -84,10 +64,7 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
     setComplexityLevels([...complexityLevels, { 
       id: `complexity-${Date.now()}`, 
       name: "", 
-      description: "",
-      maxTokens: 4096,
-      temperature: 0.7,
-      topP: 1.0
+      description: ""
     }]);
   };
 
@@ -106,15 +83,7 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
       regions,
       complexityLevels,
       apiKey,
-      apiSecret,
       baseUrl,
-      apiVersion,
-      modelName,
-      authType,
-      timeout,
-      retryCount,
-      qpsLimit,
-      quotaLimit,
       status
     });
   };
@@ -143,19 +112,17 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
       </Card>
 
       <Tabs defaultValue="api" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="api">API配置</TabsTrigger>
-          <TabsTrigger value="connection">连接配置</TabsTrigger>
           <TabsTrigger value="regions">区域管理</TabsTrigger>
           <TabsTrigger value="complexity">复杂度管理</TabsTrigger>
-          <TabsTrigger value="quota">限流配额</TabsTrigger>
         </TabsList>
 
         {/* API配置 */}
         <TabsContent value="api" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">API认证</CardTitle>
+              <CardTitle className="text-base">API配置</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -165,41 +132,7 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
                   onChange={(e) => setBaseUrl(e.target.value)} 
                   placeholder="https://api.example.com"
                 />
-                <p className="text-xs text-muted-foreground mt-1">API的基础地址，不包含版本路径</p>
-              </div>
-              
-              <div>
-                <Label>API版本</Label>
-                <Input 
-                  value={apiVersion} 
-                  onChange={(e) => setApiVersion(e.target.value)} 
-                  placeholder="v1"
-                />
-              </div>
-
-              <div>
-                <Label>模型名称 <span className="text-red-500">*</span></Label>
-                <Input 
-                  value={modelName} 
-                  onChange={(e) => setModelName(e.target.value)} 
-                  placeholder="gpt-4"
-                />
-                <p className="text-xs text-muted-foreground mt-1">实际调用的模型标识</p>
-              </div>
-
-              <div>
-                <Label>认证方式</Label>
-                <Select value={authType} onValueChange={(v: any) => setAuthType(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bearer">Bearer Token</SelectItem>
-                    <SelectItem value="api-key">API Key (Header)</SelectItem>
-                    <SelectItem value="basic">Basic Auth</SelectItem>
-                    <SelectItem value="custom">自定义</SelectItem>
-                  </SelectContent>
-                </Select>
+                <p className="text-xs text-muted-foreground mt-1">API的基础地址</p>
               </div>
 
               <div>
@@ -219,53 +152,6 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
                   >
                     {showApiKey ? "隐藏" : "显示"}
                   </Button>
-                </div>
-              </div>
-
-              {authType === "basic" && (
-                <div>
-                  <Label>API Secret</Label>
-                  <Input
-                    type="password"
-                    value={apiSecret}
-                    onChange={(e) => setApiSecret(e.target.value)}
-                    placeholder="API密钥"
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 连接配置 */}
-        <TabsContent value="connection" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">连接设置</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>超时时间（秒）</Label>
-                  <Input 
-                    type="number"
-                    value={timeout} 
-                    onChange={(e) => setTimeout(Number(e.target.value))} 
-                    min={5}
-                    max={300}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">请求超时时间</p>
-                </div>
-                <div>
-                  <Label>重试次数</Label>
-                  <Input 
-                    type="number"
-                    value={retryCount} 
-                    onChange={(e) => setRetryCount(Number(e.target.value))} 
-                    min={0}
-                    max={10}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">失败后重试次数</p>
                 </div>
               </div>
             </CardContent>
@@ -358,77 +244,11 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
                         className="text-sm"
                       />
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <Label className="text-xs">Max Tokens</Label>
-                        <Input
-                          type="number"
-                          value={level.maxTokens}
-                          onChange={(e) => handleUpdateComplexity(level.id, "maxTokens", Number(e.target.value))}
-                          min={1}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Temperature</Label>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          max={2}
-                          value={level.temperature}
-                          onChange={(e) => handleUpdateComplexity(level.id, "temperature", Number(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Top P</Label>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          max={1}
-                          value={level.topP}
-                          onChange={(e) => handleUpdateComplexity(level.id, "topP", Number(e.target.value))}
-                        />
-                      </div>
-                    </div>
                   </div>
                 ))}
                 {complexityLevels.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8">暂无复杂度等级，点击"添加等级"创建</p>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 限流配额 */}
-        <TabsContent value="quota" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">限流与配额</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>QPS限制（每秒请求数）</Label>
-                <Input 
-                  type="number"
-                  value={qpsLimit} 
-                  onChange={(e) => setQpsLimit(Number(e.target.value))} 
-                  min={1}
-                  max={1000}
-                />
-                <p className="text-xs text-muted-foreground mt-1">控制每秒最大请求数，避免超出API限制</p>
-              </div>
-              
-              <div>
-                <Label>配额限制（每日调用量）</Label>
-                <Input 
-                  type="number"
-                  value={quotaLimit} 
-                  onChange={(e) => setQuotaLimit(Number(e.target.value))} 
-                  min={100}
-                />
-                <p className="text-xs text-muted-foreground mt-1">每日最大API调用次数，0表示不限制</p>
               </div>
             </CardContent>
           </Card>

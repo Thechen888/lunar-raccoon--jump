@@ -22,9 +22,6 @@ interface ComplexityLevel {
   id: string;
   name: string;
   description: string;
-  maxTokens?: number;
-  temperature?: number;
-  topP?: number;
 }
 
 interface MCPType {
@@ -34,15 +31,7 @@ interface MCPType {
   regions: Region[];
   complexityLevels: ComplexityLevel[];
   apiKey?: string;
-  apiSecret?: string;
   baseUrl?: string;
-  apiVersion?: string;
-  modelName?: string;
-  authType?: "bearer" | "api-key" | "basic" | "custom";
-  timeout?: number;
-  retryCount?: number;
-  qpsLimit?: number;
-  quotaLimit?: number;
   status: "active" | "inactive";
 }
 
@@ -58,20 +47,13 @@ export const MCPManagement = () => {
         { id: "usa", name: "美国", endpoint: "https://api.pangu.huawei.com/usa" }
       ],
       complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能，快速响应", maxTokens: 2000, temperature: 0.7, topP: 1.0 },
-        { id: "medium", name: "一般", description: "标准功能，平衡性能", maxTokens: 4096, temperature: 0.5, topP: 0.9 },
-        { id: "complex", name: "复杂", description: "高级功能，深度分析", maxTokens: 8000, temperature: 0.3, topP: 0.9 },
-        { id: "full", name: "完全", description: "完整功能，最高精度", maxTokens: 16000, temperature: 0.1, topP: 0.8 }
+        { id: "simple", name: "精简", description: "基础功能，快速响应" },
+        { id: "medium", name: "一般", description: "标准功能，平衡性能" },
+        { id: "complex", name: "复杂", description: "高级功能，深度分析" },
+        { id: "full", name: "完全", description: "完整功能，最高精度" }
       ],
       apiKey: "sk-********",
       baseUrl: "https://api.pangu.huawei.com",
-      apiVersion: "v1",
-      modelName: "pangu-3-200k",
-      authType: "bearer",
-      timeout: 30,
-      retryCount: 3,
-      qpsLimit: 10,
-      quotaLimit: 10000,
       status: "active"
     },
     {
@@ -82,20 +64,13 @@ export const MCPManagement = () => {
         { id: "main", name: "主节点", endpoint: "https://api.ecohub.com" }
       ],
       complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能", maxTokens: 2000, temperature: 0.7, topP: 1.0 },
-        { id: "medium", name: "一般", description: "标准功能", maxTokens: 4096, temperature: 0.5, topP: 0.9 },
-        { id: "complex", name: "复杂", description: "高级功能", maxTokens: 8000, temperature: 0.3, topP: 0.9 },
-        { id: "full", name: "完全", description: "完整功能", maxTokens: 16000, temperature: 0.1, topP: 0.8 }
+        { id: "simple", name: "精简", description: "基础功能" },
+        { id: "medium", name: "一般", description: "标准功能" },
+        { id: "complex", name: "复杂", description: "高级功能" },
+        { id: "full", name: "完全", description: "完整功能" }
       ],
       apiKey: "sk-********",
       baseUrl: "https://api.ecohub.com",
-      apiVersion: "v1",
-      modelName: "ecohub-pro",
-      authType: "bearer",
-      timeout: 30,
-      retryCount: 3,
-      qpsLimit: 5,
-      quotaLimit: 5000,
       status: "active"
     }
   ]);
@@ -118,13 +93,6 @@ export const MCPManagement = () => {
       complexityLevels: [],
       apiKey: "",
       baseUrl: "",
-      apiVersion: "v1",
-      modelName: "",
-      authType: "bearer",
-      timeout: 30,
-      retryCount: 3,
-      qpsLimit: 10,
-      quotaLimit: 10000,
       status: "active"
     };
     setMcpTypes([...mcpTypes, newType]);
@@ -160,7 +128,7 @@ export const MCPManagement = () => {
                     <Server className="h-5 w-5" />
                     <span>MCP 服务管理</span>
                   </CardTitle>
-                  <CardDescription>管理MCP服务的完整配置</CardDescription>
+                  <CardDescription>管理MCP服务的配置</CardDescription>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
