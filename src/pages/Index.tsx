@@ -8,7 +8,7 @@ import { MCPSelector } from "@/components/MCPSelector";
 import { MCPSelection } from "@/components/MCPSelector";
 import { DocumentSelector } from "@/components/DocumentSelector";
 import { DocumentSelection } from "@/components/DocumentSelector";
-import { ChatArea } from "@/components/ChatArea";
+import { ChatArea, ChatConfig } from "@/components/ChatArea";
 import { UserPermissions } from "@/components/UserPermissions";
 import { MCPManagement } from "@/components/MCPManagement";
 import { DocumentManagement } from "@/components/DocumentManagement";
@@ -87,7 +87,7 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Panel - Configuration */}
             <div className="lg:col-span-1 space-y-4">
-              <ChatArea.ChatConfig
+              <ChatConfig
                 models={[
                   { id: "model-1", name: "GPT-4 主模型", provider: "OpenAI" },
                   { id: "model-2", name: "GPT-3.5 Turbo", provider: "OpenAI" }
