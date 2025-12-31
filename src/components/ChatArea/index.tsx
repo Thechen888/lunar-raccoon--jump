@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { LoadingIndicator } from "./LoadingIndicator";
+import { ChatConfig, ChatMode } from "./ChatConfig";
 import { toast } from "sonner";
 
 import { MCPSelection } from "../MCPSelector";
@@ -56,6 +57,17 @@ interface Message {
     complexity: string;
     dbAddress: string;
   };
+  chatMode?: ChatMode;
+  modelInfo?: {
+    modelId: string;
+    modelName: string;
+    provider: string;
+  };
+  documentCollectionInfo?: {
+    id: string;
+    name: string;
+    type: string;
+  };
 }
 
 interface ChatAreaProps {
@@ -68,12 +80,37 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
     {
       id: "1",
       role: "system",
-      content: "欢迎使用智能对话平台！请选择MCP和向量数据库开始对话。",
+      content: "欢迎使用智能对话平台！请配置对话模式开始对话。",
       timestamp: new Date()
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // 对话配置
+  const [chatConfig, setChatConfig] = useState<{
+    mode: ChatMode;
+    modelId: string;
+    documentCollectionId?: string;
+  }>({
+    mode: "llm",
+    modelId: "model-1",
+    documentCollectionId: undefined
+  });
+
+  // 可用模型（从模型管理获取）
+  const availableModels = [
+    { id: "model-1", name: "GPT-4 主模型", provider: "OpenAI" },
+    { id: "model-2", name: "GPT-3.5 Turbo", provider: "OpenAI" }
+  ];
+
+  // 可用文档集（从文档管理获取）
+  const availableDocumentCollections = [
+    { id: "tech-docs-cn", name: "技术文档-中文", type: "技术文档" },
+    { id: "business-docs-cn", name: "业务文档-中文", type: "业务文档" },
+    { id: "legal-docs-eu", name: "法律文档-欧洲", type: "法律文档" },
+    { id: "knowledge-base", name: "知识库", type: "知识库" }
+  ];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -82,51 +119,71 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
   }, [messages, isLoading]);
 
   const handleSend = async (input: string) => {
-    if (selectedMCPs.length === 0) {
-      toast.error("请至少选择一个MCP配置");
-      return;
-    }
-
-    if (!selectedDoc) {
-      toast.error("请至少选择一个向量数据库");
-      return;
-    }
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date()
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    setTimeout(() => {
-      const mcpSummary = selectedMCPs.map(m => {
-        const provider = mcpProviders.find(p => p.id === m.provider);
-        const providerName = provider?.name || m.provider;
-        const regionNames = m.regions.map(r => provider?.regions.find(reg => reg.id === r)?.name || r).join(", ");
-        const complexityName = provider?.complexityLevels.find(c => c.id === m.complexity)?.name || m.complexity;
-        return `${providerName} (${regionNames} - ${complexityName})`;
-      }).join(" | ");
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: `这是来自多个MCP的模拟回复。\n\n已选择MCP: ${mcpSummary}\n\n您的消息已结合 ${selectedDoc.vectorDb} - ${selectedDoc.dbAddress} - ${selectedDoc.complexity} 进行处理。\n\n您的问题是：${input}\n\n在实际应用中，这里会返回真实的对话内容。`,
+    if (chatConfig.mode === "llm") {
+      // LLM 模式：直接使用模型
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        content: input,
         timestamp: new Date(),
-        mcpInfo: selectedMCPs,
-        docInfo: {
-          vectorDb: selectedDoc.vectorDb,
-          complexity: selectedDoc.complexity,
-          dbAddress: selectedDoc.dbAddress
-        }
+        chatMode: chatConfig.mode,
+        modelInfo: availableModels.find(m => m.id === chatConfig.modelId)
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsLoading(false);
-    }, 1500);
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
+
+      setTimeout(() => {
+        const model = availableModels.find(m => m.id === chatConfig.modelId);
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `这是来自 ${model?.name} 的回复。\n\n您的消息已通过 LLM 模式处理。\n\n您的问题是：${input}\n\n在实际应用中，这里会返回真实的对话内容。`,
+          timestamp: new Date(),
+          chatMode: chatConfig.mode,
+          modelInfo: model
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        setIsLoading(false);
+      }, 1500);
+    } else if (chatConfig.mode === "knowledge") {
+      // 知识库模式：基于文档集检索
+      if (!chatConfig.documentCollectionId) {
+        toast.error("请先选择文档集");
+        return;
+      }
+
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        content: input,
+        timestamp: new Date(),
+        chatMode: chatConfig.mode,
+        modelInfo: availableModels.find(m => m.id === chatConfig.modelId),
+        documentCollectionInfo: availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId)
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
+
+      setTimeout(() => {
+        const model = availableModels.find(m => m.id === chatConfig.modelId);
+        const collection = availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId);
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `这是基于文档集 "${collection?.name}" 的增强回复。\n\n检索到的相关文档已用于生成答案。\n\n您的问题是：${input}\n\n在实际应用中，这里会先从文档集中检索相关内容，然后由 ${model?.name} 生成最终答案。`,
+          timestamp: new Date(),
+          chatMode: chatConfig.mode,
+          modelInfo: model,
+          documentCollectionInfo: collection
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        setIsLoading(false);
+      }, 1500);
+    }
   };
 
   return (
@@ -138,6 +195,31 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
             <span>对话区域</span>
           </CardTitle>
           <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+            {chatConfig.mode === "llm" && (
+              <>
+                <Badge variant="outline" className="text-xs">LLM 模式</Badge>
+                {availableModels.find(m => m.id === chatConfig.modelId) && (
+                  <Badge variant="secondary" className="text-xs">
+                    {availableModels.find(m => m.id === chatConfig.modelId)?.name}
+                  </Badge>
+                )}
+              </>
+            )}
+            {chatConfig.mode === "knowledge" && (
+              <>
+                <Badge variant="outline" className="text-xs">知识库模式</Badge>
+                {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId) && (
+                  <Badge variant="secondary" className="text-xs">
+                    {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId)?.name}
+                  </Badge>
+                )}
+                {availableModels.find(m => m.id === chatConfig.modelId) && (
+                  <Badge variant="outline" className="text-xs">
+                    {availableModels.find(m => m.id === chatConfig.modelId)?.name}
+                  </Badge>
+                )}
+              </>
+            )}
             {selectedMCPs.map((mcp) => {
               const provider = mcpProviders.find(p => p.id === mcp.provider);
               const providerName = provider?.name || mcp.provider;
@@ -171,3 +253,5 @@ export const ChatArea = ({ selectedMCPs, selectedDoc }: ChatAreaProps) => {
     </Card>
   );
 };
+
+export { ChatConfig };

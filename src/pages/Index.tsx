@@ -85,8 +85,24 @@ const Index = () => {
         {/* Chat Tab */}
         <TabsContent value="chat" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Panel - MCP & Document Selection */}
+            {/* Left Panel - Configuration */}
             <div className="lg:col-span-1 space-y-4">
+              <ChatArea.ChatConfig
+                models={[
+                  { id: "model-1", name: "GPT-4 主模型", provider: "OpenAI" },
+                  { id: "model-2", name: "GPT-3.5 Turbo", provider: "OpenAI" }
+                ]}
+                documentCollections={[
+                  { id: "tech-docs-cn", name: "技术文档-中文", type: "技术文档" },
+                  { id: "business-docs-cn", name: "业务文档-中文", type: "业务文档" },
+                  { id: "legal-docs-eu", name: "法律文档-欧洲", type: "法律文档" },
+                  { id: "knowledge-base", name: "知识库", type: "知识库" }
+                ]}
+                onConfigChange={(config) => {
+                  console.log("Chat config changed:", config);
+                }}
+              />
+              <Separator />
               <MCPSelector onSelect={handleMCPSelect} selectedMCPs={selectedMCPs} />
               <Separator />
               <DocumentSelector onSelect={handleDocSelect} selectedDoc={selectedDoc} />

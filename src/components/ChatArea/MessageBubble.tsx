@@ -1,5 +1,6 @@
-import { User, Bot, MessageSquare } from "lucide-react";
+import { User, Bot, MessageSquare, Brain, Database, FileText } from "lucide-react";
 import { MCPSelection } from "../MCPSelector";
+import { ChatMode } from "./ChatConfig";
 
 // MCP 服务数据（从 MCP 管理中读取）
 const mcpProviders = [
@@ -46,6 +47,17 @@ interface Message {
     vectorDb: string;
     complexity: string;
     dbAddress: string;
+  };
+  chatMode?: ChatMode;
+  modelInfo?: {
+    modelId: string;
+    modelName: string;
+    provider: string;
+  };
+  documentCollectionInfo?: {
+    id: string;
+    name: string;
+    type: string;
   };
 }
 
@@ -100,13 +112,44 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
           }`}
         >
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-          {(message.mcpInfo && message.mcpInfo.length > 0) && (
+          
+          {/* 对话模式信息 */}
+          {message.chatMode && (
+            <div className="mt-2 pt-2 border-t border-current/20">
+              <p className="text-xs opacity-75 flex items-center space-x-1">
+                {message.chatMode === "llm" ? (
+                  <Brain className="h-3 w-3" />
+                ) : (
+                  <Database className="h-3 w-3" />
+                )}
+                <span>
+                  {message.chatMode === "llm" ? "LLM模式" : "知识库模式"}
+                  {message.modelInfo && ` - ${message.modelInfo.name}`}
+                </span>
+              </p>
+            </div>
+          )}
+
+          {/* 文档集信息 */}
+          {message.documentCollectionInfo && (
+            <div className="mt-2 pt-2 border-t border-current/20">
+              <p className="text-xs opacity-75 flex items-center space-x-1">
+                <FileText className="h-3 w-3" />
+                <span>文档集: {message.documentCollectionInfo.name} ({message.documentCollectionInfo.type})</span>
+              </p>
+            </div>
+          )}
+
+          {/* MCP 信息 */}
+          {message.mcpInfo && message.mcpInfo.length > 0 && (
             <div className="mt-2 pt-2 border-t border-current/20">
               <p className="text-xs opacity-75">
                 MCP: {message.mcpInfo.map(m => `${getProviderName(m.provider)} / ${m.regions.map(r => getRegionName(m.provider, r)).join(", ")} / ${getComplexityName(m.provider, m.complexity)}`).join(" | ")}
               </p>
             </div>
           )}
+
+          {/* 向量库信息 */}
           {message.docInfo && (
             <div className="mt-2 pt-2 border-t border-current/20">
               <p className="text-xs opacity-75">
