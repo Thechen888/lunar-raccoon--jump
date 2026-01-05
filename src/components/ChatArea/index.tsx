@@ -206,6 +206,12 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
     return mcpProviders.find(p => p.id === providerId)?.complexityLevels.find(c => c.id === complexityId)?.name || complexityId;
   };
 
+  const getVectorDbName = (providerId: string) => {
+    return providerId === "pinecone" ? "Pinecone" : 
+           providerId === "milvus" ? "Milvus" : 
+           providerId === "custom" ? "自定义" : providerId;
+  };
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
       {/* 左侧配置面板 - 使用折叠面板 */}
@@ -306,7 +312,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
               ))}
               {selectedDoc && (
                 <Badge variant="secondary" className="text-xs">
-                  {selectedDoc.vectorDb}
+                  {getVectorDbName(selectedDoc.provider)} - {selectedDoc.complexity}
                 </Badge>
               )}
             </div>

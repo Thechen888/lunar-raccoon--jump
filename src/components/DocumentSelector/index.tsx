@@ -7,7 +7,8 @@ import { FileText, Plus } from "lucide-react";
 import { useState } from "react";
 
 export type DocumentSelection = {
-  vectorDb: string;
+  provider: string;
+  database: string;
   complexity: string;
   dbAddress: string;
   customAddress?: string;
@@ -74,14 +75,14 @@ interface DocumentSelectorProps {
 
 export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProps) => {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [selectedDbId, setSelectedDbId] = useState<string | null>(null);
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customAddress, setCustomAddress] = useState("");
 
   const handleSelect = (providerId: string, dbId: string, complexity: string, address: string) => {
     const selection: DocumentSelection = {
-      vectorDb: providerId,
+      provider: providerId,
+      database: dbId,
       complexity,
       dbAddress: address
     };
@@ -91,7 +92,8 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
   const handleAddCustom = () => {
     if (customName && customAddress) {
       const selection: DocumentSelection = {
-        vectorDb: "custom",
+        provider: "custom",
+        database: "custom",
         complexity: "自定义",
         dbAddress: customName,
         customAddress
@@ -103,6 +105,13 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
     }
   };
 
+  const isSelected = (providerId: string, dbId: string, complexity: string) => {
+    return selectedDoc && 
+           selectedDoc.provider === providerId && 
+           selectedDoc.database === dbId && 
+           selectedDoc.complexity === complexity;
+  };
+
   return (
     <div className="space-y-4">
       {/* 提供商选择 */}
@@ -112,12 +121,9 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
           {vectorDbProviders.map((provider) => (
             <Button
               key={provider.id}
-              variant={selectedProvider === provider.id ? "default" : "outline"}
+              variant={selectedProvider === provider.id || selectedDoc?.provider === provider.id ? "default" : "outline"}
               size="sm"
-              onClick={() => {
-                setSelectedProvider(provider.id);
-                setSelectedDbId(null);
-              }}
+              onClick={() => setSelectedProvider(provider.id)}
               className="h-8 text-xs"
             >
               {provider.name}
@@ -166,7 +172,7 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
 
       {/* 数据库和复杂度选择 */}
       {selectedProvider && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {vectorDbProviders
             .find((p) => p.id === selectedProvider)
             ?.databases.map((db) => (
@@ -179,9 +185,7 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
                     <div
                       key={option.name}
                       className={`p-2 border rounded-md cursor-pointer transition-colors text-xs ${
-                        selectedDoc?.vectorDb === selectedProvider &&
-                        selectedDoc?.dbAddress === option.address &&
-                        selectedDoc?.complexity === option.name
+                        isSelected(selectedProvider, db.id, option.name)
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
                       }`}
@@ -197,7 +201,7 @@ export const DocumentSelector = ({ onSelect, selectedDoc }: DocumentSelectorProp
       )}
 
       {/* 已选摘要 */}
-      {selectedDoc && selectedDoc.vectorDb === "custom" && (
+      {selectedDoc && selectedDoc.provider === "custom" && (
         <div className="border-t pt-3">
           <div className="flex items-center justify-between p-2 bg-primary/5 rounded-md">
             <div>
