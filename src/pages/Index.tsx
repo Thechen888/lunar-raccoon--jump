@@ -39,11 +39,9 @@ const Index = () => {
   const handleDocSelect = (selection: DocumentSelection | null) => {
     setSelectedDoc(selection);
     if (selection) {
-      const providerName = selection.provider === "pinecone" ? "Pinecone" : 
-                           selection.provider === "milvus" ? "Milvus" : selection.provider;
       toast({
         title: "向量数据库已选择",
-        description: `${providerName} - ${selection.complexity}`,
+        description: selection.name,
       });
     }
   };
