@@ -15,7 +15,6 @@ import { MCPEditor } from "./MCPEditor";
 interface Region {
   id: string;
   name: string;
-  endpoint?: string;
 }
 
 interface ComplexityLevel {
@@ -30,8 +29,6 @@ interface MCPType {
   description: string;
   regions: Region[];
   complexityLevels: ComplexityLevel[];
-  apiKey?: string;
-  baseUrl?: string;
   status: "active" | "inactive";
 }
 
@@ -42,9 +39,9 @@ export const MCPManagement = () => {
       name: "PANGU",
       description: "华为盘古大模型",
       regions: [
-        { id: "china", name: "中国", endpoint: "https://api.pangu.huawei.com/china" },
-        { id: "europe", name: "欧洲", endpoint: "https://api.pangu.huawei.com/europe" },
-        { id: "usa", name: "美国", endpoint: "https://api.pangu.huawei.com/usa" }
+        { id: "china", name: "中国" },
+        { id: "europe", name: "欧洲" },
+        { id: "usa", name: "美国" }
       ],
       complexityLevels: [
         { id: "simple", name: "精简", description: "基础功能，快速响应" },
@@ -52,8 +49,6 @@ export const MCPManagement = () => {
         { id: "complex", name: "复杂", description: "高级功能，深度分析" },
         { id: "full", name: "完全", description: "完整功能，最高精度" }
       ],
-      apiKey: "sk-********",
-      baseUrl: "https://api.pangu.huawei.com",
       status: "active"
     },
     {
@@ -61,7 +56,7 @@ export const MCPManagement = () => {
       name: "EcoHub",
       description: "EcoHub 生态系统",
       regions: [
-        { id: "main", name: "主节点", endpoint: "https://api.ecohub.com" }
+        { id: "main", name: "主节点" }
       ],
       complexityLevels: [
         { id: "simple", name: "精简", description: "基础功能" },
@@ -69,8 +64,6 @@ export const MCPManagement = () => {
         { id: "complex", name: "复杂", description: "高级功能" },
         { id: "full", name: "完全", description: "完整功能" }
       ],
-      apiKey: "sk-********",
-      baseUrl: "https://api.ecohub.com",
       status: "active"
     }
   ]);
@@ -91,8 +84,6 @@ export const MCPManagement = () => {
       description: "",
       regions: [],
       complexityLevels: [],
-      apiKey: "",
-      baseUrl: "",
       status: "active"
     };
     setMcpTypes([...mcpTypes, newType]);

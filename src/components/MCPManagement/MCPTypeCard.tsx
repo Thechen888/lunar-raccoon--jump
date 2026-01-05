@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Trash2, MapPin, Sliders, Key } from "lucide-react";
+import { Settings, Trash2, MapPin, Sliders } from "lucide-react";
 
 interface Region {
   id: string;
@@ -20,8 +20,6 @@ interface MCPType {
   description: string;
   regions: Region[];
   complexityLevels: ComplexityLevel[];
-  apiKey?: string;
-  baseUrl?: string;
   status: "active" | "inactive";
 }
 
@@ -58,18 +56,6 @@ export const MCPTypeCard = ({ mcpType, onEdit, onDelete }: MCPTypeCardProps) => 
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {/* API配置 */}
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Key className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">API配置:</span>
-            </div>
-            <div className="p-2 bg-muted/50 rounded text-xs">
-              <span className="text-muted-foreground">Base URL:</span>
-              <span className="ml-1 font-medium truncate block">{mcpType.baseUrl || "未配置"}</span>
-            </div>
-          </div>
-          
           {/* 区域 */}
           <div className="flex items-center space-x-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />

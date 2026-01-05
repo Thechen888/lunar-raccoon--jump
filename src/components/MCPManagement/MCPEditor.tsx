@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface Region {
   id: string;
   name: string;
-  endpoint?: string;
 }
 
 interface ComplexityLevel {
@@ -27,8 +25,6 @@ interface MCPType {
   description: string;
   regions: Region[];
   complexityLevels: ComplexityLevel[];
-  apiKey?: string;
-  baseUrl?: string;
   status: "active" | "inactive";
 }
 
@@ -43,20 +39,17 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
   const [description, setDescription] = useState(mcpType.description);
   const [regions, setRegions] = useState<Region[]>(mcpType.regions);
   const [complexityLevels, setComplexityLevels] = useState<ComplexityLevel[]>(mcpType.complexityLevels);
-  const [apiKey, setApiKey] = useState(mcpType.apiKey || "");
-  const [baseUrl, setBaseUrl] = useState(mcpType.baseUrl || "");
   const [status, setStatus] = useState<"active" | "inactive">(mcpType.status || "active");
-  const [showApiKey, setShowApiKey] = useState(false);
 
   const handleAddRegion = () => {
-    setRegions([...regions, { id: `region-${Date.now()}`, name: "", endpoint: "" }]);
+    setRegions([...regions, { id: `region-${Date.now()}`, name: "" }]);
   };
 
   const handleRemoveRegion = (id: string) => {
     setRegions(regions.filter(r => r.id !== id));
   };
 
-  const handleUpdateRegion = (id: string, field: "name" | "endpoint", value: string) => {
+  const handleUpdateRegion = (id: string, field: "name", value: string) => {
     setRegions(regions.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
@@ -82,8 +75,6 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
       description,
       regions,
       complexityLevels,
-      apiKey,
-      baseUrl,
       status
     });
   };
@@ -111,52 +102,11 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="api" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="api">API配置</TabsTrigger>
+      <Tabs defaultValue="regions" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="regions">区域管理</TabsTrigger>
           <TabsTrigger value="complexity">复杂度管理</TabsTrigger>
         </TabsList>
-
-        {/* API配置 */}
-        <TabsContent value="api" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">API配置</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Base URL <span className="text-red-500">*</span></Label>
-                <Input 
-                  value={baseUrl} 
-                  onChange={(e) => setBaseUrl(e.target.value)} 
-                  placeholder="https://api.example.com"
-                />
-                <p className="text-xs text-muted-foreground mt-1">API的基础地址</p>
-              </div>
-
-              <div>
-                <Label>API Key <span className="text-red-500">*</span></Label>
-                <div className="flex space-x-2">
-                  <Input
-                    type={showApiKey ? "text" : "password"}
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="sk-***"
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                  >
-                    {showApiKey ? "隐藏" : "显示"}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* 区域管理 */}
         <TabsContent value="regions" className="space-y-4 mt-4">
@@ -186,15 +136,6 @@ export const MCPEditor = ({ mcpType, onSave, onCancel }: MCPEditorProps) => {
                       <Button variant="ghost" size="sm" onClick={() => handleRemoveRegion(region.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </div>
-                    <div>
-                      <Label className="text-xs">区域端点（可选）</Label>
-                      <Input
-                        value={region.endpoint || ""}
-                        onChange={(e) => handleUpdateRegion(region.id, "endpoint", e.target.value)}
-                        placeholder="https://api.example.com/china"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">如果该区域有独立的端点，请填写</p>
                     </div>
                   </div>
                 ))}
