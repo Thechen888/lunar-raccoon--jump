@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Settings, Trash2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ModelPermission {
   id: string;
@@ -64,28 +65,35 @@ export const ModelRoleCard = ({ role, modelPermissions, onEdit, onDelete, onTogg
               return (
                 <div
                   key={permission.id}
-                  className={`p-2 border rounded-lg cursor-pointer transition-colors ${
-                    hasPermission ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                  className={`p-2 border rounded-lg transition-colors ${
+                    hasPermission ? "border-primary bg-primary/5" : "border-border"
                   }`}
-                  onClick={() => !role.isSystem && onTogglePermission(role.id, permission.id)}
                 >
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded-sm border ${hasPermission ? "bg-primary border-primary" : "border-border"}`}>
-                      {hasPermission && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id={`model-perm-${role.id}-${permission.id}`}
+                      checked={hasPermission}
+                      onCheckedChange={() => onTogglePermission(role.id, permission.id)}
+                      disabled={role.isSystem}
+                      className="mt-0.5"
+                    />
                     <div className="flex-1">
-                      <div className="text-sm font-medium">{permission.name}</div>
-                      <div className="text-xs text-muted-foreground">{permission.description}</div>
+                      <Label
+                        htmlFor={`model-perm-${role.id}-${permission.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {permission.name}
+                      </Label>
+                      <p className="text-xs text-muted-foreground">{permission.description}</p>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
+          {role.isSystem && (
+            <p className="text-xs text-muted-foreground mt-2">系统角色的权限不可修改</p>
+          )}
         </div>
       </CardContent>
     </Card>
