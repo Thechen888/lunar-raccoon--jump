@@ -3,31 +3,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export interface MCPService {
-  id: string;
+export interface MCPCreateData {
   name: string;
   description: string;
   url: string;
-  headers?: string;
-  status: "active" | "inactive";
-  createdAt: string;
+  headers: string;
 }
 
-interface MCPEditorProps {
-  service: MCPService;
-  onSave: (data: Partial<MCPService>) => void;
+interface MCPCreateFormProps {
+  onSave: (data: MCPCreateData) => void;
   onCancel: () => void;
 }
 
-export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
-  const [name, setName] = useState(service.name);
-  const [description, setDescription] = useState(service.description);
-  const [url, setUrl] = useState(service.url);
-  const [headers, setHeaders] = useState(service.headers || "");
-  const [status, setStatus] = useState<"active" | "inactive">(service.status);
+export const MCPCreateForm = ({ onSave, onCancel }: MCPCreateFormProps) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [url, setUrl] = useState("");
+  const [headers, setHeaders] = useState("");
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -42,8 +36,7 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
       name: name.trim(),
       description: description.trim(),
       url: url.trim(),
-      headers: headers.trim() || undefined,
-      status
+      headers: headers.trim()
     });
   };
 
@@ -51,12 +44,12 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">编辑MCP服务</CardTitle>
+          <CardTitle className="text-lg">创建MCP服务</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label>
-              服务名称 <span className="text-red-500">*</span>
+              名称 <span className="text-red-500">*</span>
             </Label>
             <Input
               value={name}
@@ -94,10 +87,6 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
             />
             <p className="text-xs text-muted-foreground mt-1">HTTP 请求的自定义请求头（JSON格式）</p>
           </div>
-          <div className="flex items-center space-x-2 pt-2">
-            <Switch checked={status === "active"} onCheckedChange={(v) => setStatus(v ? "active" : "inactive")} />
-            <Label>启用此服务</Label>
-          </div>
         </CardContent>
       </Card>
 
@@ -106,7 +95,7 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
           取消
         </Button>
         <Button onClick={handleSave}>
-          保存配置
+          创建服务
         </Button>
       </div>
     </div>

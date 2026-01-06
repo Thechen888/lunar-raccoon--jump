@@ -1,104 +1,96 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Server, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
-import { GlobalSettings } from "./GlobalSettings";
 import { MCPTypeCard } from "./MCPTypeCard";
 import { MCPEditor } from "./MCPEditor";
+import { MCPCreateForm, MCPCreateData } from "./MCPCreateForm";
+import { MCPImportForm, MCPImportData } from "./MCPImportForm";
+import { GlobalSettings } from "./GlobalSettings";
 
-interface Region {
-  id: string;
-  name: string;
-}
-
-interface ComplexityLevel {
-  id: string;
-  name: string;
-  description: string;
-}
-
-interface MCPType {
+export interface MCPService {
   id: string;
   name: string;
   description: string;
-  regions: Region[];
-  complexityLevels: ComplexityLevel[];
+  url: string;
+  headers?: string;
   status: "active" | "inactive";
+  createdAt: string;
 }
 
 export const MCPManagement = () => {
-  const [mcpTypes, setMcpTypes] = useState<MCPType[]>([
+  const [services, setServices] = useState<MCPService[]>([
     {
-      id: "pangu",
+      id: "mcp-1",
       name: "PANGU",
-      description: "华为盘古大模型",
-      regions: [
-        { id: "china", name: "中国" },
-        { id: "europe", name: "欧洲" },
-        { id: "usa", name: "美国" }
-      ],
-      complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能，快速响应" },
-        { id: "medium", name: "一般", description: "标准功能，平衡性能" },
-        { id: "complex", name: "复杂", description: "高级功能，深度分析" },
-        { id: "full", name: "完全", description: "完整功能，最高精度" }
-      ],
-      status: "active"
+      description: "华为盘古大模型服务",
+      url: "https://api.pangu.example.com/v1",
+      headers: '{"Authorization": "Bearer pangu-token"}',
+      status: "active",
+      createdAt: "2024-01-10"
     },
     {
-      id: "ecohub",
+      id: "mcp-2",
       name: "EcoHub",
-      description: "EcoHub 生态系统",
-      regions: [
-        { id: "main", name: "主节点" }
-      ],
-      complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能" },
-        { id: "medium", name: "一般", description: "标准功能" },
-        { id: "complex", name: "复杂", description: "高级功能" },
-        { id: "full", name: "完全", description: "完整功能" }
-      ],
-      status: "active"
+      description: "EcoHub 生态系统服务",
+      url: "https://api.ecohub.example.com/v1",
+      headers: '{"Authorization": "Bearer ecohub-token", "Content-Type": "application/json"}',
+      status: "active",
+      createdAt: "2024-01-11"
     }
   ]);
 
-  const [activeTab, setActiveTab] = useState("types");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingType, setEditingType] = useState<MCPType | null>(null);
+  const [activeTab, setActiveTab] = useState("services");
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addMode, setAddMode] = useState<"create" | "import">("create");
+  const [editingService, setEditingService] = useState<MCPService | null>(null);
   const [globalSettings, setGlobalSettings] = useState({
     autoReconnect: true,
     loadBalancing: true,
     logging: false
   });
 
-  const handleAddType = () => {
-    const newType: MCPType = {
+  const handleCreateService = (data: MCPCreateData) => {
+    const newService: MCPService = {
       id: `mcp-${Date.now()}`,
-      name: "新MCP服务",
-      description: "",
-      regions: [],
-      complexityLevels: [],
-      status: "active"
+      name: data.name,
+      description: data.description,
+      url: data.url,
+      headers: data.headers || undefined,
+      status: "active",
+      createdAt: new Date().toISOString().split('T')[0]
     };
-    setMcpTypes([...mcpTypes, newType]);
-    setIsAddDialogOpen(false);
-    toast.success("MCP服务已添加");
+    setServices([...services, newService]);
+    setAddDialogOpen(false);
+    toast.success(`MCP服务 "${data.name}" 已创建`);
   };
 
-  const handleUpdateType = (updatedType: Partial<MCPType> & { id: string }) => {
-    setMcpTypes(mcpTypes.map(t => t.id === updatedType.id ? { ...t, ...updatedType } : t));
-    setEditingType(null);
+  const handleImportServices = (data: MCPImportData) => {
+    const newServices = data.services.map((service) => ({
+      id: `mcp-${Date.now()}-${Math.random()}`,
+      name: service.name,
+      description: service.description,
+      url: service.url,
+      headers: service.headers,
+      status: "active" as const,
+      createdAt: new Date().toISOString().split('T')[0]
+    }));
+    setServices([...services, ...newServices]);
+    setAddDialogOpen(false);
+    toast.success(`成功导入 ${newServices.length} 个MCP服务`);
+  };
+
+  const handleUpdateService = (updatedService: Partial<MCPService> & { id: string }) => {
+    setServices(services.map(s => s.id === updatedService.id ? { ...s, ...updatedService } : s));
+    setEditingService(null);
     toast.success("MCP服务已更新");
   };
 
-  const handleDeleteType = (id: string) => {
-    setMcpTypes(mcpTypes.filter(t => t.id !== id));
+  const handleDeleteService = (id: string) => {
+    setServices(services.filter(s => s.id !== id));
     toast.success("MCP服务已删除");
   };
 
@@ -106,11 +98,11 @@ export const MCPManagement = () => {
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="types">MCP服务</TabsTrigger>
+          <TabsTrigger value="services">MCP服务</TabsTrigger>
           <TabsTrigger value="settings">全局设置</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="types" className="space-y-4">
+        <TabsContent value="services" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -121,49 +113,69 @@ export const MCPManagement = () => {
                   </CardTitle>
                   <CardDescription>管理MCP服务的配置</CardDescription>
                 </div>
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      添加服务
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
+                <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                  <Button onClick={() => {
+                    setAddMode("create");
+                    setAddDialogOpen(true);
+                  }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    添加服务
+                  </Button>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>添加新MCP服务</DialogTitle>
-                      <DialogDescription>创建一个新的MCP服务（添加后请在编辑中配置详细信息）</DialogDescription>
+                      <DialogTitle>添加MCP服务</DialogTitle>
+                      <DialogDescription>选择创建方式</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <div>
-                        <Label>服务名称 <span className="text-red-500">*</span></Label>
-                        <Input placeholder="例如：Claude" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <Card 
+                          className={`cursor-pointer transition-all ${addMode === "create" ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                          onClick={() => setAddMode("create")}
+                        >
+                          <CardContent className="p-6 text-center">
+                            <div className="text-2xl mb-2">✏️</div>
+                            <div className="font-medium mb-1">创建服务</div>
+                            <div className="text-xs text-muted-foreground">手动配置MCP服务</div>
+                          </CardContent>
+                        </Card>
+                        <Card 
+                          className={`cursor-pointer transition-all ${addMode === "import" ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                          onClick={() => setAddMode("import")}
+                        >
+                          <CardContent className="p-6 text-center">
+                            <div className="text-2xl mb-2">📥</div>
+                            <div className="font-medium mb-1">导入服务</div>
+                            <div className="text-xs text-muted-foreground">从JSON文件导入</div>
+                          </CardContent>
+                        </Card>
                       </div>
-                      <div>
-                        <Label>描述</Label>
-                        <Textarea placeholder="描述这个MCP服务的用途" />
-                      </div>
+
+                      {addMode === "create" ? (
+                        <MCPCreateForm onSave={handleCreateService} onCancel={() => setAddDialogOpen(false)} />
+                      ) : (
+                        <MCPImportForm onImport={handleImportServices} onCancel={() => setAddDialogOpen(false)} />
+                      )}
                     </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                        取消
-                      </Button>
-                      <Button onClick={handleAddType}>添加</Button>
-                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mcpTypes.map((mcpType) => (
+                {services.map((service) => (
                   <MCPTypeCard
-                    key={mcpType.id}
-                    mcpType={mcpType}
-                    onEdit={setEditingType}
-                    onDelete={handleDeleteType}
+                    key={service.id}
+                    service={service}
+                    onEdit={setEditingService}
+                    onDelete={handleDeleteService}
                   />
                 ))}
               </div>
+              {services.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>暂无MCP服务，点击"添加服务"开始配置</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -180,16 +192,16 @@ export const MCPManagement = () => {
         </TabsContent>
       </Tabs>
 
-      {editingType && (
-        <Dialog open={true} onOpenChange={() => setEditingType(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      {editingService && (
+        <Dialog open={true} onOpenChange={() => setEditingService(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>编辑 MCP 服务 - {editingType.name}</DialogTitle>
+              <DialogTitle>编辑 MCP 服务 - {editingService.name}</DialogTitle>
             </DialogHeader>
             <MCPEditor
-              mcpType={editingType}
-              onSave={handleUpdateType}
-              onCancel={() => setEditingType(null)}
+              service={editingService}
+              onSave={handleUpdateService}
+              onCancel={() => setEditingService(null)}
             />
           </DialogContent>
         </Dialog>
