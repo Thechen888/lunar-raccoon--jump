@@ -98,6 +98,11 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isAddRoleDialogOpen, setIsAddRoleDialogOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editFormData, setEditFormData] = useState<{ name: string; description: string }>({
+    name: "",
+    description: ""
+  });
   const [syncLoading, setSyncLoading] = useState(false);
 
   const filteredUsers = users.filter(
@@ -172,6 +177,29 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
           : role
       )
     );
+  };
+
+  const handleEditRole = (role: Role) => {
+    if (role.isSystem) {
+      toast.error("系统角色无法编辑");
+      return;
+    }
+    setEditingRole(role);
+    setEditFormData({
+      name: role.name,
+      description: role.description
+    });
+  };
+
+  const handleSaveEditRole = () => {
+    if (editingRole) {
+      setRoles(roles.map((role) =>
+        role.id === editingRole.id ? { ...role, name: editFormData.name, description: editFormData.description } : role
+      ));
+      setEditingRole(null);
+      setEditFormData({ name: "", description: "" });
+      toast.success("角色已更新");
+    }
   };
 
   const getDefaultRole = () => roles.find((r) => r.isDefault);
@@ -315,7 +343,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                         key={role.id}
                         role={role}
                         systemPermissions={systemPermissions}
-                        onEdit={() => {}}
+                        onEdit={handleEditRole}
                         onDelete={handleDeleteRole}
                         onTogglePermission={handleTogglePermission}
                       />
@@ -330,7 +358,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                         key={role.id}
                         role={role}
                         documentPermissions={documentPermissions}
-                        onEdit={() => {}}
+                        onEdit={handleEditRole}
                         onDelete={handleDeleteRole}
                         onTogglePermission={handleTogglePermission}
                       />
@@ -345,7 +373,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                         key={role.id}
                         role={role}
                         modelPermissions={modelPermissions}
-                        onEdit={() => {}}
+                        onEdit={handleEditRole}
                         onDelete={handleDeleteRole}
                         onTogglePermission={handleTogglePermission}
                       />
@@ -357,6 +385,43 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* 编辑角色对话框 */}
+      {editingRole && (
+        <Dialog open={true} onOpenChange={() => setEditingRole(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>编辑角色</DialogTitle>
+              <DialogDescription>编辑角色的名称和描述</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>角色名称</Label>
+                <Input
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  placeholder="输入角色名称"
+                />
+              </div>
+              <div>
+                <Label>描述</Label>
+                <Textarea
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  placeholder="描述这个角色的用途"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingRole(null)}>
+                取消
+              </Button>
+              <Button onClick={handleSaveEditRole}>保存</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
