@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Trash2, Upload, RefreshCw, Search, Database, File, Edit } from "lucide-react";
+import { FileText, Plus, Trash2, Upload, RefreshCw, Search, Database, File, Edit, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface OriginalDocument {
@@ -168,6 +168,7 @@ export const DocumentManagement = () => {
     tags: [] as string[],
     description: ""
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [editingCollection, setEditingCollection] = useState<DocumentCollection | null>(null);
   const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string }>({
     name: "",
@@ -247,36 +248,52 @@ export const DocumentManagement = () => {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(files);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(files => files.filter((_, i) => i !== index));
+  };
+
   const handleUploadDocuments = () => {
     if (!uploadFormData.collectionId) {
       toast.error("请选择文档集");
       return;
     }
     
+    if (selectedFiles.length === 0) {
+      toast.error("请选择要上传的文档");
+      return;
+    }
+    
     setProcessing(true);
+    
     setTimeout(() => {
-      const newDocument: OriginalDocument = {
-        id: `doc-${Date.now()}`,
-        name: "新上传文档.pdf",
-        type: "PDF",
-        size: Math.floor(Math.random() * 5000000),
+      const newDocuments = selectedFiles.map((file, index) => ({
+        id: `doc-${Date.now()}-${index}`,
+        name: file.name,
+        type: file.name.split('.').pop()?.toUpperCase() || "UNKNOWN",
+        size: file.size,
         uploadDate: new Date().toISOString().split('T')[0],
-        status: "processed",
+        status: "processed" as "processed" | "processing" | "error",
         tags: uploadFormData.tags,
         collectionId: uploadFormData.collectionId
-      };
+      }));
       
-      setDocuments([...documents, newDocument]);
+      setDocuments([...documents, ...newDocuments]);
       setCollections(collections.map(c => 
         c.id === uploadFormData.collectionId 
-          ? { ...c, documentCount: c.documentCount + 1 }
+          ? { ...c, documentCount: c.documentCount + newDocuments.length }
           : c
       ));
       
       setProcessing(false);
       setIsUploadDialogOpen(false);
       setUploadFormData({ collectionId: "", tags: [], description: "" });
-      toast.success("文档上传成功");
+      setSelectedFiles([]);
+      toast.success(`成功上传 ${newDocuments.length} 个文档`);
     }, 2000);
   };
 
@@ -306,6 +323,12 @@ export const DocumentManagement = () => {
       setProcessing(false);
       toast.success("文档重新索引完成");
     }, 3000);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
   return (
@@ -480,11 +503,11 @@ export const DocumentManagement = () => {
                         上传文档
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>上传文档</DialogTitle>
                         <DialogDescription>
-                          上传新的文档到指定的文档集
+                          支持批量上传多个文档
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
@@ -523,19 +546,76 @@ export const DocumentManagement = () => {
                         <div>
                           <Label>文件</Label>
                           <div className="mt-2">
-                            <Input type="file" className="cursor-pointer" />
+                            <Input 
+                              type="file" 
+                              multiple
+                              className="cursor-pointer"
+                              onChange={handleFileSelect}
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              支持的格式：PDF, DOCX, PPTX, TXT（可多选）
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            支持的格式：PDF, DOCX, PPTX, TXT
-                          </p>
                         </div>
+
+                        {/* 已选择的文件列表 */}
+                        {selectedFiles.length > 0 && (
+                          <div className="border rounded-md p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium">已选择 {selectedFiles.length} 个文件</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedFiles([])}
+                                className="h-6 px-2 text-xs"
+                              >
+                                清空
+                              </Button>
+                            </div>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {selectedFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between p-2 bg-muted rounded text-sm"
+                                >
+                                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                    <File className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                    <span className="truncate">{file.name}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatFileSize(file.size)}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleRemoveFile(index)}
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-2 pt-2 border-t">
+                              <p className="text-xs text-muted-foreground">
+                                总大小: {formatFileSize(selectedFiles.reduce((acc, file) => acc + file.size, 0))}
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => {
+                          setIsUploadDialogOpen(false);
+                          setSelectedFiles([]);
+                          setUploadFormData({ collectionId: "", tags: [], description: "" });
+                        }}>
                           取消
                         </Button>
-                        <Button onClick={handleUploadDocuments} disabled={processing}>
-                          {processing ? "上传中..." : "上传"}
+                        <Button onClick={handleUploadDocuments} disabled={processing || selectedFiles.length === 0}>
+                          {processing ? "上传中..." : `上传 ${selectedFiles.length} 个文档`}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -607,7 +687,7 @@ export const DocumentManagement = () => {
                         <Badge variant="outline">{doc.type}</Badge>
                       </TableCell>
                       <TableCell>
-                        {(doc.size / 1024 / 1024).toFixed(2)} MB
+                        {formatFileSize(doc.size)}
                       </TableCell>
                       <TableCell>
                         {collections.find(c => c.id === doc.collectionId)?.name || "未分类"}
