@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, FileText, Server, Lock, Cpu } from "lucide-react";
@@ -20,13 +20,101 @@ const Index = () => {
     permissions: ["mcp:read", "docs:read", "chat:write"]
   });
 
+  // MCP服务数据（统一管理）
+  const [mcpServices, setMcpServices] = useState([
+    {
+      id: "mcp-1",
+      name: "Pangu-中国-精简",
+      description: "华为盘古大模型服务-中国区域-精简模式",
+      url: "https://api.pangu.example.com/v1",
+      headers: '{"Authorization": "Bearer pangu-token"}',
+      status: "active",
+      createdAt: "2024-01-10",
+      tools: [
+        {
+          id: "tool-1",
+          name: "代码生成",
+          description: "根据需求生成高质量代码",
+          enabled: true,
+          details: "支持多种编程语言，包括Python、Java、JavaScript、C++等。可以根据自然语言描述生成代码片段、完整函数或类。"
+        },
+        {
+          id: "tool-2",
+          name: "文本分析",
+          description: "分析文本内容，提取关键信息",
+          enabled: true,
+          details: "支持文本分类、情感分析、实体识别、关键词提取等功能。适用于新闻、评论、社交媒体等多种文本场景。"
+        }
+      ],
+      prompts: [
+        {
+          id: "prompt-1",
+          name: "系统提示词",
+          content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。"
+        }
+      ]
+    },
+    {
+      id: "mcp-2",
+      name: "hub-欧洲-复杂",
+      description: "EcoHub生态系统服务-欧洲区域-复杂模式",
+      url: "https://api.ecohub.example.com/v1",
+      headers: '{"Authorization": "Bearer ecohub-token", "Content-Type": "application/json"}',
+      status: "active",
+      createdAt: "2024-01-11",
+      tools: [
+        {
+          id: "tool-5",
+          name: "数据分析",
+          description: "分析数据集，生成洞察报告",
+          enabled: true,
+          details: "支持数据清洗、统计分析、可视化等功能。可以处理结构化数据和非结构化数据。"
+        },
+        {
+          id: "tool-6",
+          name: "数据预测",
+          description: "基于历史数据预测未来趋势",
+          enabled: false,
+          details: "使用机器学习算法进行时间序列预测、分类预测等。支持多种预测模型。"
+        }
+      ],
+      prompts: [
+        {
+          id: "prompt-3",
+          name: "数据分析提示词",
+          content: "请分析以下数据，提供关键洞察和建议。数据如下：\n\n{data}"
+        }
+      ]
+    }
+  ]);
+
+  // 将MCP服务转换为MCPSelector所需的格式
+  const mcpProviders = useMemo(() => {
+    return mcpServices.map(service => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      regions: [
+        { id: "china", name: "中国" },
+        { id: "europe", name: "欧洲" },
+        { id: "usa", name: "美国" }
+      ],
+      complexityLevels: [
+        { id: "simple", name: "精简", description: "基础功能，快速响应" },
+        { id: "medium", name: "一般", description: "标准功能，平衡性能" },
+        { id: "complex", name: "复杂", description: "高级功能，深度分析" },
+        { id: "full", name: "完全", description: "完整功能，最高精度" }
+      ]
+    }));
+  }, [mcpServices]);
+
   const { toast } = useToast();
 
   const handleMCPSelect = (selections: MCPSelection[]) => {
     setSelectedMCPs(selections);
     if (selections.length > 0) {
       const summary = selections.map(s => {
-        const providerName = s.provider === "pangu" ? "PANGU" : s.provider === "ecohub" ? "EcoHub" : s.provider;
+        const providerName = mcpProviders.find(p => p.id === s.provider)?.name || s.provider;
         return `${providerName} (${s.regions.length}区域/${s.complexity})`;
       }).join(", ");
       toast({
@@ -44,6 +132,10 @@ const Index = () => {
         description: selection.name,
       });
     }
+  };
+
+  const handleServicesChange = (newServices: typeof mcpServices) => {
+    setMcpServices(newServices);
   };
 
   return (
@@ -85,12 +177,16 @@ const Index = () => {
             selectedDoc={selectedDoc}
             onMCPSelect={handleMCPSelect}
             onDocSelect={handleDocSelect}
+            mcpProviders={mcpProviders}
           />
         </TabsContent>
 
         {/* MCP Management Tab */}
         <TabsContent value="mcp">
-          <MCPManagement />
+          <MCPManagement 
+            onServicesChange={handleServicesChange}
+            services={mcpServices}
+          />
         </TabsContent>
 
         {/* Document Management Tab */}

@@ -1,47 +1,20 @@
 import { User, Bot, MessageSquare, Brain, Database, FileText } from "lucide-react";
-import { MCPSelection } from "../MCPSelector";
 import { ChatMode } from "./ChatConfig";
 
-// MCP 服务数据（从 MCP 管理中读取）
-const mcpProviders = [
-  {
-    id: "pangu",
-    name: "PANGU",
-    description: "华为盘古大模型",
-    regions: [
-      { id: "china", name: "中国" },
-      { id: "europe", name: "欧洲" },
-      { id: "usa", name: "美国" }
-    ],
-    complexityLevels: [
-      { id: "simple", name: "精简", description: "基础功能，快速响应" },
-      { id: "medium", name: "一般", description: "标准功能，平衡性能" },
-      { id: "complex", name: "复杂", description: "高级功能，深度分析" },
-      { id: "full", name: "完全", description: "完整功能，最高精度" }
-    ]
-  },
-  {
-    id: "ecohub",
-    name: "EcoHub",
-    description: "EcoHub 生态系统",
-    regions: [
-      { id: "main", name: "主节点" }
-    ],
-    complexityLevels: [
-      { id: "simple", name: "精简", description: "基础功能" },
-      { id: "medium", name: "一般", description: "标准功能" },
-      { id: "complex", name: "复杂", description: "高级功能" },
-      { id: "full", name: "完全", description: "完整功能" }
-    ]
-  }
-];
+interface MCPProvider {
+  id: string;
+  name: string;
+  description: string;
+  regions: Array<{ id: string; name: string }>;
+  complexityLevels: Array<{ id: string; name: string; description: string }>;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
-  mcpInfo?: MCPSelection[];
+  mcpInfo?: any[];
   documents?: string[];
   docInfo?: {
     vectorDb: string;
@@ -63,9 +36,10 @@ interface Message {
 
 interface MessageBubbleProps {
   message: Message;
+  mcpProviders: MCPProvider[];
 }
 
-export const MessageBubble = ({ message }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, mcpProviders }: MessageBubbleProps) => {
   const getProviderName = (providerId: string) => {
     return mcpProviders.find(p => p.id === providerId)?.name || providerId;
   };

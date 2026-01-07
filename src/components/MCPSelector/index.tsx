@@ -12,51 +12,26 @@ export type MCPSelection = {
   complexity: string;
 };
 
-// MCP 服务数据（从 MCP 管理中读取）
-const mcpProviders = [
-  {
-    id: "pangu",
-    name: "PANGU",
-    description: "华为盘古大模型",
-    regions: [
-      { id: "china", name: "中国" },
-      { id: "europe", name: "欧洲" },
-      { id: "usa", name: "美国" }
-    ],
-    complexityLevels: [
-      { id: "simple", name: "精简", description: "基础功能，快速响应" },
-      { id: "medium", name: "一般", description: "标准功能，平衡性能" },
-      { id: "complex", name: "复杂", description: "高级功能，深度分析" },
-      { id: "full", name: "完全", description: "完整功能，最高精度" }
-    ]
-  },
-  {
-    id: "ecohub",
-    name: "EcoHub",
-    description: "EcoHub 生态系统",
-    regions: [
-      { id: "main", name: "主节点" }
-    ],
-    complexityLevels: [
-      { id: "simple", name: "精简", description: "基础功能" },
-      { id: "medium", name: "一般", description: "标准功能" },
-      { id: "complex", name: "复杂", description: "高级功能" },
-      { id: "full", name: "完全", description: "完整功能" }
-    ]
-  }
-];
+interface MCPProvider {
+  id: string;
+  name: string;
+  description: string;
+  regions: Array<{ id: string; name: string }>;
+  complexityLevels: Array<{ id: string; name: string; description: string }>;
+}
 
 interface MCPSelectorProps {
   onSelect: (selection: MCPSelection[]) => void;
   selectedMCPs: MCPSelection[];
+  providers: MCPProvider[];
 }
 
-export const MCPSelector = ({ onSelect, selectedMCPs }: MCPSelectorProps) => {
+export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorProps) => {
   const [tempSelections, setTempSelections] = useState<Record<string, { regions: string[]; complexity: string }>>({});
 
   useEffect(() => {
     const initialSelections: Record<string, { regions: string[]; complexity: string }> = {};
-    mcpProviders.forEach(provider => {
+    providers.forEach(provider => {
       const selectedMCP = selectedMCPs.find(s => s.provider === provider.id);
       initialSelections[provider.id] = {
         regions: selectedMCP?.regions || [],
@@ -64,7 +39,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs }: MCPSelectorProps) => {
       };
     });
     setTempSelections(initialSelections);
-  }, [selectedMCPs]);
+  }, [selectedMCPs, providers]);
 
   const handleRegionToggle = (providerId: string, regionId: string) => {
     setTempSelections(prev => {
@@ -101,21 +76,21 @@ export const MCPSelector = ({ onSelect, selectedMCPs }: MCPSelectorProps) => {
   };
 
   const getProviderName = (providerId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.name || providerId;
+    return providers.find(p => p.id === providerId)?.name || providerId;
   };
 
   const getRegionName = (providerId: string, regionId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.regions.find(r => r.id === regionId)?.name || regionId;
+    return providers.find(p => p.id === providerId)?.regions.find(r => r.id === regionId)?.name || regionId;
   };
 
   const getComplexityName = (providerId: string, complexityId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.complexityLevels.find(c => c.id === complexityId)?.name || complexityId;
+    return providers.find(p => p.id === providerId)?.complexityLevels.find(c => c.id === complexityId)?.name || complexityId;
   };
 
   return (
     <div className="space-y-3">
       <Accordion type="multiple" className="w-full">
-        {mcpProviders.map((provider) => {
+        {providers.map((provider) => {
           const selectedMCP = selectedMCPs.find(s => s.provider === provider.id);
           const temp = tempSelections[provider.id] || { regions: [], complexity: provider.complexityLevels[0]?.id || "" };
           const isSelected = selectedMCP !== undefined;

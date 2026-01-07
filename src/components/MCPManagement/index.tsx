@@ -29,121 +29,12 @@ export interface MCPService {
   }>;
 }
 
-export const MCPManagement = () => {
-  const [services, setServices] = useState<MCPService[]>([
-    {
-      id: "mcp-1",
-      name: "PANGU",
-      description: "华为盘古大模型服务",
-      url: "https://api.pangu.example.com/v1",
-      headers: '{"Authorization": "Bearer pangu-token"}',
-      status: "active",
-      createdAt: "2024-01-10",
-      tools: [
-        {
-          id: "tool-1",
-          name: "代码生成",
-          description: "根据需求生成高质量代码",
-          enabled: true,
-          details: "支持多种编程语言，包括Python、Java、JavaScript、C++等。可以根据自然语言描述生成代码片段、完整函数或类。"
-        },
-        {
-          id: "tool-2",
-          name: "文本分析",
-          description: "分析文本内容，提取关键信息",
-          enabled: true,
-          details: "支持文本分类、情感分析、实体识别、关键词提取等功能。适用于新闻、评论、社交媒体等多种文本场景。"
-        },
-        {
-          id: "tool-3",
-          name: "图像识别",
-          description: "识别图像中的物体和场景",
-          enabled: false,
-          details: "支持物体检测、场景分类、人脸识别等功能。可应用于安防监控、智能零售、医疗影像等领域。"
-        },
-        {
-          id: "tool-4",
-          name: "语音合成",
-          description: "将文本转换为自然语音",
-          enabled: true,
-          details: "支持多种语言和声音风格，可以调整语速、音调等参数。适用于语音助手、有声读物、导航系统等场景。"
-        },
-        {
-          id: "tool-5",
-          name: "翻译服务",
-          description: "多语言互译服务",
-          enabled: false,
-          details: "支持100+语言的实时翻译，包括中英日韩法德等主流语言。适用于文档翻译、网页翻译、实时对话等场景。"
-        },
-        {
-          id: "tool-6",
-          name: "文档摘要",
-          description: "生成文档摘要",
-          enabled: true,
-          details: "自动提取文档关键信息，生成简洁明了的摘要。适用于长文档快速浏览、会议纪要整理、报告总结等场景。"
-        },
-        {
-          id: "tool-7",
-          name: "数据可视化",
-          description: "将数据转换为图表",
-          enabled: false,
-          details: "支持多种图表类型，包括柱状图、折线图、饼图、散点图等。可以自定义样式和交互效果。"
-        },
-        {
-          id: "tool-8",
-          name: "表格处理",
-          description: "处理和分析表格数据",
-          enabled: true,
-          details: "支持CSV、Excel等多种格式的表格处理，可以进行数据清洗、统计分析、公式计算等操作。"
-        }
-      ],
-      prompts: [
-        {
-          id: "prompt-1",
-          name: "系统提示词",
-          content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。"
-        },
-        {
-          id: "prompt-2",
-          name: "代码审查提示词",
-          content: "请审查以下代码，指出潜在的问题、性能瓶颈和改进建议。代码内容如下：\n\n{code}"
-        }
-      ]
-    },
-    {
-      id: "mcp-2",
-      name: "EcoHub",
-      description: "EcoHub 生态系统服务",
-      url: "https://api.ecohub.example.com/v1",
-      headers: '{"Authorization": "Bearer ecohub-token", "Content-Type": "application/json"}',
-      status: "active",
-      createdAt: "2024-01-11",
-      tools: [
-        {
-          id: "tool-9",
-          name: "数据分析",
-          description: "分析数据集，生成洞察报告",
-          enabled: true,
-          details: "支持数据清洗、统计分析、可视化等功能。可以处理结构化数据和非结构化数据。"
-        },
-        {
-          id: "tool-10",
-          name: "数据预测",
-          description: "基于历史数据预测未来趋势",
-          enabled: false,
-          details: "使用机器学习算法进行时间序列预测、分类预测等。支持多种预测模型。"
-        }
-      ],
-      prompts: [
-        {
-          id: "prompt-3",
-          name: "数据分析提示词",
-          content: "请分析以下数据，提供关键洞察和建议。数据如下：\n\n{data}"
-        }
-      ]
-    }
-  ]);
+interface MCPManagementProps {
+  onServicesChange: (services: MCPService[]) => void;
+  services: MCPService[];
+}
 
+export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps) => {
   const [activeTab, setActiveTab] = useState("services");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addMode, setAddMode] = useState<"create" | "import">("create");
@@ -168,7 +59,8 @@ export const MCPManagement = () => {
       tools: [],
       prompts: []
     };
-    setServices([...services, newService]);
+    const updatedServices = [...services, newService];
+    onServicesChange(updatedServices);
     setAddDialogOpen(false);
     toast.success(`MCP服务 "${data.name}" 已创建`);
   };
@@ -185,32 +77,36 @@ export const MCPManagement = () => {
       tools: [],
       prompts: []
     }));
-    setServices([...services, ...newServices]);
+    const updatedServices = [...services, ...newServices];
+    onServicesChange(updatedServices);
     setAddDialogOpen(false);
     toast.success(`成功导入 ${newServices.length} 个MCP服务`);
   };
 
   const handleUpdateService = (updatedService: Partial<MCPService> & { id: string }) => {
-    setServices(services.map(s => s.id === updatedService.id ? { ...s, ...updatedService } : s));
+    const updatedServices = services.map(s => s.id === updatedService.id ? { ...s, ...updatedService } : s);
+    onServicesChange(updatedServices);
     setEditingService(null);
     toast.success("MCP服务已更新");
   };
 
   const handleDeleteService = (id: string) => {
-    setServices(services.filter(s => s.id !== id));
+    const updatedServices = services.filter(s => s.id !== id);
+    onServicesChange(updatedServices);
     setDetailService(null);
     toast.success("MCP服务已删除");
   };
 
   const handleToggleServiceStatus = (id: string) => {
-    setServices(services.map(s => s.id === id ? { ...s, status: s.status === "active" ? "inactive" : "active" } : s));
+    const updatedServices = services.map(s => s.id === id ? { ...s, status: s.status === "active" ? "inactive" : "active" } : s);
+    onServicesChange(updatedServices);
     toast.success("服务状态已更新");
   };
 
   const handleToggleTool = (toolId: string) => {
     if (!detailService) return;
     
-    setServices(services.map(service => {
+    const updatedServices = services.map(service => {
       if (service.id === detailService.id && service.tools) {
         return {
           ...service,
@@ -220,7 +116,9 @@ export const MCPManagement = () => {
         };
       }
       return service;
-    }));
+    });
+
+    onServicesChange(updatedServices);
 
     // 更新 detailService 状态以反映更改
     setDetailService(prev => {
@@ -235,7 +133,7 @@ export const MCPManagement = () => {
   };
 
   const handleBatchUpdateServices = (updatedServices: MCPService[]) => {
-    setServices(updatedServices);
+    onServicesChange(updatedServices);
     toast.success("批量更新成功");
   };
 

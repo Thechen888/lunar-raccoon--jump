@@ -12,40 +12,6 @@ import { MCPSelector, MCPSelection } from "../MCPSelector";
 import { DocumentSelector, DocumentSelection } from "../DocumentSelector";
 import { toast } from "sonner";
 
-// MCP 服务数据（从 MCP 管理中读取）
-const mcpProviders = [
-  {
-    id: "pangu",
-    name: "PANGU",
-    description: "华为盘古大模型",
-    regions: [
-      { id: "china", name: "中国" },
-      { id: "europe", name: "欧洲" },
-      { id: "usa", name: "美国" }
-    ],
-    complexityLevels: [
-      { id: "simple", name: "精简", description: "基础功能，快速响应" },
-      { id: "medium", name: "一般", description: "标准功能，平衡性能" },
-      { id: "complex", name: "复杂", description: "高级功能，深度分析" },
-      { id: "full", name: "完全", description: "完整功能，最高精度" }
-    ]
-  },
-  {
-    id: "ecohub",
-    name: "EcoHub",
-    description: "EcoHub 生态系统",
-    regions: [
-      { id: "main", name: "主节点" }
-    ],
-    complexityLevels: [
-      { id: "simple", name: "精简", description: "基础功能" },
-      { id: "medium", name: "一般", description: "标准功能" },
-      { id: "complex", name: "复杂", description: "高级功能" },
-      { id: "full", name: "完全", description: "完整功能" }
-    ]
-  }
-];
-
 export type ChatMode = "llm" | "knowledge";
 
 interface Message {
@@ -84,14 +50,23 @@ interface DocumentCollection {
   type: string;
 }
 
+interface MCPProvider {
+  id: string;
+  name: string;
+  description: string;
+  regions: Array<{ id: string; name: string }>;
+  complexityLevels: Array<{ id: string; name: string; description: string }>;
+}
+
 interface ChatAreaProps {
   selectedMCPs: MCPSelection[];
   selectedDoc: DocumentSelection | null;
   onMCPSelect: (selections: MCPSelection[]) => void;
   onDocSelect: (selection: DocumentSelection | null) => void;
+  mcpProviders: MCPProvider[];
 }
 
-export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }: ChatAreaProps) => {
+export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, mcpProviders }: ChatAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -136,7 +111,8 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
         content: input,
         timestamp: new Date(),
         chatMode: chatConfig.mode,
-        modelInfo: availableModels.find(m => m.id === chatConfig.modelId)
+        modelInfo: availableModels.find(m => m.id === chatConfig.modelId),
+        mcpInfo: selectedMCPs
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -150,7 +126,8 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
           content: `这是来自 ${model?.name} 的回复。\n\n您的消息已通过 LLM 模式处理。\n\n您的问题是：${input}\n\n在实际应用中，这里会返回真实的对话内容。`,
           timestamp: new Date(),
           chatMode: chatConfig.mode,
-          modelInfo: model
+          modelInfo: model,
+          mcpInfo: selectedMCPs
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -169,7 +146,8 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
         timestamp: new Date(),
         chatMode: chatConfig.mode,
         modelInfo: availableModels.find(m => m.id === chatConfig.modelId),
-        documentCollectionInfo: availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId)
+        documentCollectionInfo: availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId),
+        mcpInfo: selectedMCPs
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -185,7 +163,8 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
           timestamp: new Date(),
           chatMode: chatConfig.mode,
           modelInfo: model,
-          documentCollectionInfo: collection
+          documentCollectionInfo: collection,
+          mcpInfo: selectedMCPs
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -243,6 +222,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
                     <MCPSelector
                       onSelect={onMCPSelect}
                       selectedMCPs={selectedMCPs}
+                      providers={mcpProviders}
                     />
                   </AccordionContent>
                 </AccordionItem>
@@ -316,7 +296,11 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect }
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             <div className="space-y-4">
               {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
+                <MessageBubble 
+                  key={message.id} 
+                  message={message}
+                  mcpProviders={mcpProviders}
+                />
               ))}
               {isLoading && <LoadingIndicator />}
             </div>
