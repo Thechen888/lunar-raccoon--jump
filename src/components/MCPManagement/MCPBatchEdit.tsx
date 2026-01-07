@@ -24,23 +24,46 @@ interface MCPBatchEditProps {
   onClose: () => void;
 }
 
+// 导入时的简化格式
+interface ImportService {
+  name: string;
+  description: string;
+  url: string;
+  headers?: string;
+}
+
+interface ImportFormat {
+  services: ImportService[];
+}
+
 export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEditProps) => {
-  const [jsonText, setJsonText] = useState(JSON.stringify(services, null, 2));
+  // 转换为导入格式（删除 id、status、createdAt）
+  const convertToImportFormat = (services: MCPService[]): ImportFormat => {
+    return {
+      services: services.map(s => ({
+        name: s.name,
+        description: s.description,
+        url: s.url,
+        headers: s.headers
+      }))
+    };
+  };
+
+  const [jsonText, setJsonText] = useState(() => JSON.stringify(convertToImportFormat(services), null, 2));
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
 
-  const validateAndParse = (text: string): MCPService[] | null => {
+  const validateAndParse = (text: string): ImportFormat | null => {
     try {
       const parsed = JSON.parse(text);
-      if (!Array.isArray(parsed)) {
-        throw new Error("JSON 必须是数组格式");
+      if (!parsed.services || !Array.isArray(parsed.services)) {
+        throw new Error("JSON 必须包含 services 数组");
       }
-      if (parsed.length === 0) {
+      if (parsed.services.length === 0) {
         throw new Error("服务列表不能为空");
       }
       // 验证每个服务的基本字段
-      parsed.forEach((service, index) => {
-        if (!service.id) throw new Error(`第 ${index + 1} 个服务缺少 id 字段`);
+      parsed.services.forEach((service: ImportService, index: number) => {
         if (!service.name) throw new Error(`第 ${index + 1} 个服务缺少 name 字段`);
         if (!service.url) throw new Error(`第 ${index + 1} 个服务缺少 url 字段`);
       });
@@ -55,7 +78,21 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
   const handleSave = () => {
     const parsed = validateAndParse(jsonText);
     if (parsed) {
-      onUpdateServices(parsed);
+      // 转换回完整格式（添加 id、status、createdAt）
+      const updatedServices: MCPService[] = parsed.services.map((s, index) => {
+        const existingService = services.find(service => service.name === s.name && service.url === s.url);
+        return {
+          id: existingService?.id || `mcp-${Date.now()}-${index}`,
+          name: s.name,
+          description: s.description,
+          url: s.url,
+          headers: s.headers,
+          status: existingService?.status || "active",
+          createdAt: existingService?.createdAt || new Date().toISOString().split('T')[0]
+        };
+      });
+
+      onUpdateServices(updatedServices);
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
       toast.success("JSON 保存成功");
@@ -69,17 +106,21 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
     toast.success("已复制到剪贴板");
   };
 
-  const exampleJson = [
-    {
-      "id": "mcp-example-1",
-      "name": "示例服务",
-      "description": "这是一个示例 MCP 服务",
-      "url": "https://api.example.com/v1",
-      "headers": "{\"Authorization\": \"Bearer token\"}",
-      "status": "active",
-      "createdAt": "2024-01-01"
-    }
-  ];
+  const exampleJson: ImportFormat = {
+    services: [
+      {
+        name: "MyMCPServer1",
+        description: "第一个MCP服务",
+        url: "https://api.example.com/mcp1",
+        headers: "{\"Authorization\": \"Bearer token1\"}"
+      },
+      {
+        name: "MyMCPServer2",
+        description: "第二个MCP服务",
+        url: "https://api.example.com/mcp2"
+      }
+    ]
+  };
 
   return (
     <div className="space-y-4">
@@ -146,7 +187,7 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
               <div className="font-medium">使用说明：</div>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                 <li>直接编辑 JSON 配置，保存时会自动验证格式</li>
-                <li>每个服务必须包含 id、name、url 字段</li>
+                <li>每个服务必须包含 name、url 字段</li>
                 <li>工具和提示无法通过此处编辑，请在详情页面中查看</li>
                 <li>可以复制 JSON 内容到其他地方使用</li>
               </ul>
