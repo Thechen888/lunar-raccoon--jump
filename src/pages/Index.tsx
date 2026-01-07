@@ -93,18 +93,7 @@ const Index = () => {
     return mcpServices.map(service => ({
       id: service.id,
       name: service.name,
-      description: service.description,
-      regions: [
-        { id: "china", name: "中国" },
-        { id: "europe", name: "欧洲" },
-        { id: "usa", name: "美国" }
-      ],
-      complexityLevels: [
-        { id: "simple", name: "精简", description: "基础功能，快速响应" },
-        { id: "medium", name: "一般", description: "标准功能，平衡性能" },
-        { id: "complex", name: "复杂", description: "高级功能，深度分析" },
-        { id: "full", name: "完全", description: "完整功能，最高精度" }
-      ]
+      description: service.description
     }));
   }, [mcpServices]);
 
@@ -113,13 +102,13 @@ const Index = () => {
   const handleMCPSelect = (selections: MCPSelection[]) => {
     setSelectedMCPs(selections);
     if (selections.length > 0) {
-      const summary = selections.map(s => {
-        const providerName = mcpProviders.find(p => p.id === s.provider)?.name || s.provider;
-        return `${providerName} (${s.regions.length}区域/${s.complexity})`;
+      const names = selections.map(id => {
+        const provider = mcpProviders.find(p => p.id === id);
+        return provider?.name || id;
       }).join(", ");
       toast({
         title: "MCP 已选择",
-        description: summary,
+        description: names,
       });
     }
   };

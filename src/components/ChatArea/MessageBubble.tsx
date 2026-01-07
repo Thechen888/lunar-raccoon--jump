@@ -5,8 +5,8 @@ interface MCPProvider {
   id: string;
   name: string;
   description: string;
-  regions: Array<{ id: string; name: string }>;
-  complexityLevels: Array<{ id: string; name: string; description: string }>;
+  regions?: Array<{ id: string; name: string }>;
+  complexityLevels?: Array<{ id: string; name: string; description: string }>;
 }
 
 interface Message {
@@ -14,7 +14,7 @@ interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
-  mcpInfo?: any[];
+  mcpInfo?: string[];
   documents?: string[];
   docInfo?: {
     vectorDb: string;
@@ -42,14 +42,6 @@ interface MessageBubbleProps {
 export const MessageBubble = ({ message, mcpProviders }: MessageBubbleProps) => {
   const getProviderName = (providerId: string) => {
     return mcpProviders.find(p => p.id === providerId)?.name || providerId;
-  };
-
-  const getRegionName = (providerId: string, regionId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.regions.find(r => r.id === regionId)?.name || regionId;
-  };
-
-  const getComplexityName = (providerId: string, complexityId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.complexityLevels.find(c => c.id === complexityId)?.name || complexityId;
   };
 
   return (
@@ -118,7 +110,7 @@ export const MessageBubble = ({ message, mcpProviders }: MessageBubbleProps) => 
           {message.mcpInfo && message.mcpInfo.length > 0 && (
             <div className="mt-2 pt-2 border-t border-current/20">
               <p className="text-xs opacity-75">
-                MCP: {message.mcpInfo.map(m => `${getProviderName(m.provider)} / ${m.regions.map(r => getRegionName(m.provider, r)).join(", ")} / ${getComplexityName(m.provider, m.complexity)}`).join(" | ")}
+                MCP: {message.mcpInfo.map(id => getProviderName(id)).join(" | ")}
               </p>
             </div>
           )}

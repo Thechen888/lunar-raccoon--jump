@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageSquare, Settings2 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { LoadingIndicator } from "./LoadingIndicator";
@@ -54,8 +54,8 @@ interface MCPProvider {
   id: string;
   name: string;
   description: string;
-  regions: Array<{ id: string; name: string }>;
-  complexityLevels: Array<{ id: string; name: string; description: string }>;
+  regions?: Array<{ id: string; name: string }>;
+  complexityLevels?: Array<{ id: string; name: string; description: string }>;
 }
 
 interface ChatAreaProps {
@@ -177,14 +177,6 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
     return mcpProviders.find(p => p.id === providerId)?.name || providerId;
   };
 
-  const getRegionName = (providerId: string, regionId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.regions.find(r => r.id === regionId)?.name || regionId;
-  };
-
-  const getComplexityName = (providerId: string, complexityId: string) => {
-    return mcpProviders.find(p => p.id === providerId)?.complexityLevels.find(c => c.id === complexityId)?.name || complexityId;
-  };
-
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
       {/* 左侧配置面板 - 使用折叠面板 */}
@@ -198,7 +190,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden p-0">
             <ScrollArea className="h-full px-4 pb-4">
-              <Accordion type="multiple" defaultValue={["chat-config"]} className="space-y-3">
+              <Accordion type="multiple" defaultValue={["chat-config", "mcp-config"]} className="space-y-3">
                 {/* 对话配置 */}
                 <AccordionItem value="chat-config" className="border rounded-lg px-4">
                   <AccordionTrigger className="py-3 hover:no-underline">
@@ -279,9 +271,9 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
                   )}
                 </>
               )}
-              {selectedMCPs.map((mcp) => (
-                <Badge key={mcp.provider} variant="outline" className="text-xs">
-                  {getProviderName(mcp.provider)}
+              {selectedMCPs.map((mcpId) => (
+                <Badge key={mcpId} variant="outline" className="text-xs">
+                  {getProviderName(mcpId)}
                 </Badge>
               ))}
               {selectedDoc && (
