@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Info } from "lucide-react";
 
 interface ModelConfig {
   id?: string;
@@ -74,25 +75,85 @@ export const ModelForm = ({ initialData, onSave }: ModelFormProps) => {
           <Label>描述</Label>
           <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="模型描述..." />
         </div>
+        
+        {/* 最大Token数 */}
         <div>
           <Label>最大Token数</Label>
-          <Input type="number" value={formData.maxTokens} onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })} />
+          <Input 
+            type="number" 
+            value={formData.maxTokens} 
+            onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })} 
+          />
         </div>
+        
+        {/* 温度 */}
         <div>
-          <Label>温度 (Temperature)</Label>
-          <Input type="number" step="0.1" min="0" max="1" value={formData.temperature} onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })} />
+          <div className="flex items-center space-x-1">
+            <Label>温度</Label>
+            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <Input 
+            type="number" 
+            step="0.1" 
+            min="0" 
+            max="2" 
+            value={formData.temperature} 
+            onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })} 
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            模型生成文本的随机程度。值越大，回复内容越富有多样性、创造性、随机性；设为0根据事实回答。日常聊天建议设置为 0.7。
+          </p>
         </div>
+        
+        {/* Top P */}
         <div>
-          <Label>Top P</Label>
-          <Input type="number" step="0.1" min="0" max="1" value={formData.topP} onChange={(e) => setFormData({ ...formData, topP: parseFloat(e.target.value) })} />
+          <div className="flex items-center space-x-1">
+            <Label>Top P</Label>
+            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <Input 
+            type="number" 
+            step="0.1" 
+            min="0" 
+            max="1" 
+            value={formData.topP} 
+            onChange={(e) => setFormData({ ...formData, topP: parseFloat(e.target.value) })} 
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            默认值为1，值越小，AI生成的内容越单调，也越容易理解；值越大，AI回复的词汇范围越大，越多样化。
+          </p>
         </div>
+        
+        {/* 频率惩罚 */}
         <div>
-          <Label>频率惩罚</Label>
-          <Input type="number" step="0.1" min="-2" max="2" value={formData.frequencyPenalty} onChange={(e) => setFormData({ ...formData, frequencyPenalty: parseFloat(e.target.value) })} />
+          <div className="flex items-center space-x-1">
+            <Label>频率惩罚</Label>
+            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <Input 
+            type="number" 
+            step="0.1" 
+            min="-2" 
+            max="2" 
+            value={formData.frequencyPenalty} 
+            onChange={(e) => setFormData({ ...formData, frequencyPenalty: parseFloat(e.target.value) })} 
+          />
         </div>
+        
+        {/* 存在惩罚 */}
         <div>
-          <Label>存在惩罚</Label>
-          <Input type="number" step="0.1" min="-2" max="2" value={formData.presencePenalty} onChange={(e) => setFormData({ ...formData, presencePenalty: parseFloat(e.target.value) })} />
+          <div className="flex items-center space-x-1">
+            <Label>存在惩罚</Label>
+            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <Input 
+            type="number" 
+            step="0.1" 
+            min="-2" 
+            max="2" 
+            value={formData.presencePenalty} 
+            onChange={(e) => setFormData({ ...formData, presencePenalty: parseFloat(e.target.value) })} 
+          />
         </div>
       </div>
       <div className="flex space-x-2 pt-4 border-t">
