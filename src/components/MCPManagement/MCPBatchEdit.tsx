@@ -205,8 +205,6 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                 <li>直接编辑 JSON 配置，保存时会自动验证格式</li>
                 <li>每个服务必须包含 name、url 字段</li>
-                <li>编辑现有服务时，会保留该服务的 tools 和 prompts 等数据</li>
-                <li>删除服务会从列表中移除该服务</li>
                 <li>可以复制 JSON 内容到其他地方使用</li>
               </ul>
             </div>
