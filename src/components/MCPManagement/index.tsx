@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Server, Plus } from "lucide-react";
+import { Server, Plus, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { MCPTypeCard } from "./MCPTypeCard";
 import { MCPEditor } from "./MCPEditor";
 import { MCPCreateForm, MCPCreateData } from "./MCPCreateForm";
 import { MCPImportForm, MCPImportData } from "./MCPImportForm";
+import { MCPBatchEdit } from "./MCPBatchEdit";
 import { GlobalSettings } from "./GlobalSettings";
 import { MCPDetailDialog, MCPService, Tool } from "./MCPDetailDialog";
 
@@ -120,6 +121,7 @@ export const MCPManagement = () => {
   const [addMode, setAddMode] = useState<"create" | "import">("create");
   const [editingService, setEditingService] = useState<MCPService | null>(null);
   const [detailService, setDetailService] = useState<MCPService | null>(null);
+  const [batchEditOpen, setBatchEditOpen] = useState(false);
   const [globalSettings, setGlobalSettings] = useState({
     autoReconnect: true,
     loadBalancing: true,
@@ -172,6 +174,11 @@ export const MCPManagement = () => {
     toast.success("MCP服务已删除");
   };
 
+  const handleToggleServiceStatus = (id: string) => {
+    setServices(services.map(s => s.id === id ? { ...s, status: s.status === "active" ? "inactive" : "active" } : s));
+    toast.success("服务状态已更新");
+  };
+
   const handleToggleTool = (serviceId: string, toolId: string) => {
     setServices(services.map(service => {
       if (service.id === serviceId && service.tools) {
@@ -184,6 +191,11 @@ export const MCPManagement = () => {
       }
       return service;
     }));
+  };
+
+  const handleBatchUpdateServices = (updatedServices: MCPService[]) => {
+    setServices(updatedServices);
+    toast.success("批量更新成功");
   };
 
   return (
@@ -205,51 +217,57 @@ export const MCPManagement = () => {
                   </CardTitle>
                   <CardDescription>管理MCP服务的配置</CardDescription>
                 </div>
-                <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-                  <Button onClick={() => {
-                    setAddMode("create");
-                    setAddDialogOpen(true);
-                  }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    添加服务
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" onClick={() => setBatchEditOpen(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    编辑
                   </Button>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>添加MCP服务</DialogTitle>
-                      <DialogDescription>选择创建方式</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <Card 
-                          className={`cursor-pointer transition-all ${addMode === "create" ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
-                          onClick={() => setAddMode("create")}
-                        >
-                          <CardContent className="p-6 text-center">
-                            <div className="text-2xl mb-2">✏️</div>
-                            <div className="font-medium mb-1">创建服务</div>
-                            <div className="text-xs text-muted-foreground">手动配置MCP服务</div>
-                          </CardContent>
-                        </Card>
-                        <Card 
-                          className={`cursor-pointer transition-all ${addMode === "import" ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
-                          onClick={() => setAddMode("import")}
-                        >
-                          <CardContent className="p-6 text-center">
-                            <div className="text-2xl mb-2">📥</div>
-                            <div className="font-medium mb-1">导入服务</div>
-                            <div className="text-xs text-muted-foreground">从JSON文件导入</div>
-                          </CardContent>
-                        </Card>
-                      </div>
+                  <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                    <Button onClick={() => {
+                      setAddMode("create");
+                      setAddDialogOpen(true);
+                    }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      添加服务
+                    </Button>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>添加MCP服务</DialogTitle>
+                        <DialogDescription>选择创建方式</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <Card 
+                            className={`cursor-pointer transition-all ${addMode === "create" ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                            onClick={() => setAddMode("create")}
+                          >
+                            <CardContent className="p-6 text-center">
+                              <div className="text-2xl mb-2">✏️</div>
+                              <div className="font-medium mb-1">创建服务</div>
+                              <div className="text-xs text-muted-foreground">手动配置MCP服务</div>
+                            </CardContent>
+                          </Card>
+                          <Card 
+                            className={`cursor-pointer transition-all ${addMode === "import" ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                            onClick={() => setAddMode("import")}
+                          >
+                            <CardContent className="p-6 text-center">
+                              <div className="text-2xl mb-2">📥</div>
+                              <div className="font-medium mb-1">导入服务</div>
+                              <div className="text-xs text-muted-foreground">从JSON导入</div>
+                            </CardContent>
+                          </Card>
+                        </div>
 
-                      {addMode === "create" ? (
-                        <MCPCreateForm onSave={handleCreateService} onCancel={() => setAddDialogOpen(false)} />
-                      ) : (
-                        <MCPImportForm onImport={handleImportServices} onCancel={() => setAddDialogOpen(false)} />
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                        {addMode === "create" ? (
+                          <MCPCreateForm onSave={handleCreateService} onCancel={() => setAddDialogOpen(false)} />
+                        ) : (
+                          <MCPImportForm onImport={handleImportServices} onCancel={() => setAddDialogOpen(false)} />
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -261,6 +279,7 @@ export const MCPManagement = () => {
                     onEdit={setEditingService}
                     onDetail={setDetailService}
                     onDelete={handleDeleteService}
+                    onToggleStatus={handleToggleServiceStatus}
                   />
                 ))}
               </div>
@@ -284,6 +303,19 @@ export const MCPManagement = () => {
           />
         </TabsContent>
       </Tabs>
+
+      {/* 批量编辑对话框 */}
+      {batchEditOpen && (
+        <Dialog open={true} onOpenChange={setBatchEditOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <MCPBatchEdit
+              services={services}
+              onUpdateServices={handleBatchUpdateServices}
+              onClose={() => setBatchEditOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* 编辑对话框 */}
       {editingService && (

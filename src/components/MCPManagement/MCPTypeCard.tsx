@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Settings, Trash2, Globe, ExternalLink } from "lucide-react";
 
@@ -20,9 +21,10 @@ interface MCPTypeCardProps {
   onEdit: (service: MCPService) => void;
   onDetail: (service: MCPService) => void;
   onDelete: (id: string) => void;
+  onToggleStatus: (id: string) => void;
 }
 
-export const MCPTypeCard = ({ service, onEdit, onDetail, onDelete }: MCPTypeCardProps) => {
+export const MCPTypeCard = ({ service, onEdit, onDetail, onDelete, onToggleStatus }: MCPTypeCardProps) => {
   return (
     <Card>
       <CardHeader>
@@ -37,6 +39,10 @@ export const MCPTypeCard = ({ service, onEdit, onDetail, onDelete }: MCPTypeCard
             <CardDescription>{service.description || "无描述"}</CardDescription>
           </div>
           <div className="flex items-center space-x-2">
+            <Switch
+              checked={service.status === "active"}
+              onCheckedChange={() => onToggleStatus(service.id)}
+            />
             <Button variant="outline" size="sm" onClick={() => onDetail(service)}>
               <ExternalLink className="h-4 w-4 mr-1" />
               详情

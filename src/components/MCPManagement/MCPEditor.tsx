@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface MCPService {
@@ -27,7 +26,6 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
   const [description, setDescription] = useState(service.description);
   const [url, setUrl] = useState(service.url);
   const [headers, setHeaders] = useState(service.headers || "");
-  const [status, setStatus] = useState<"active" | "inactive">(service.status);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -42,8 +40,7 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
       name: name.trim(),
       description: description.trim(),
       url: url.trim(),
-      headers: headers.trim() || undefined,
-      status
+      headers: headers.trim() || undefined
     });
   };
 
@@ -93,10 +90,6 @@ export const MCPEditor = ({ service, onSave, onCancel }: MCPEditorProps) => {
               rows={4}
             />
             <p className="text-xs text-muted-foreground mt-1">HTTP 请求的自定义请求头（JSON格式）</p>
-          </div>
-          <div className="flex items-center space-x-2 pt-2">
-            <Switch checked={status === "active"} onCheckedChange={(v) => setStatus(v ? "active" : "inactive")} />
-            <Label>启用此服务</Label>
           </div>
         </CardContent>
       </Card>
