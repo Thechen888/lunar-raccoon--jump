@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Trash2, Globe, Code } from "lucide-react";
+import { Settings, Trash2, Globe, ExternalLink } from "lucide-react";
 
-interface MCPService {
+export interface MCPService {
   id: string;
   name: string;
   description: string;
@@ -11,15 +11,18 @@ interface MCPService {
   headers?: string;
   status: "active" | "inactive";
   createdAt: string;
+  tools?: any[];
+  prompts?: any[];
 }
 
 interface MCPTypeCardProps {
   service: MCPService;
   onEdit: (service: MCPService) => void;
+  onDetail: (service: MCPService) => void;
   onDelete: (id: string) => void;
 }
 
-export const MCPTypeCard = ({ service, onEdit, onDelete }: MCPTypeCardProps) => {
+export const MCPTypeCard = ({ service, onEdit, onDetail, onDelete }: MCPTypeCardProps) => {
   return (
     <Card>
       <CardHeader>
@@ -34,9 +37,12 @@ export const MCPTypeCard = ({ service, onEdit, onDelete }: MCPTypeCardProps) => 
             <CardDescription>{service.description || "无描述"}</CardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(service)}>
-              <Settings className="h-4 w-4 mr-1" />
-              编辑
+            <Button variant="outline" size="sm" onClick={() => onDetail(service)}>
+              <ExternalLink className="h-4 w-4 mr-1" />
+              详情
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => onEdit(service)}>
+              <Settings className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)}>
               <Trash2 className="h-4 w-4" />
@@ -53,21 +59,13 @@ export const MCPTypeCard = ({ service, onEdit, onDelete }: MCPTypeCardProps) => 
               {service.url}
             </code>
           </div>
-          
-          {service.headers && (
-            <div className="flex items-start space-x-2">
-              <Code className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div className="flex-1">
-                <span className="text-sm text-muted-foreground">请求头:</span>
-                <code className="text-xs bg-muted px-2 py-1 rounded block mt-1 truncate">
-                  {service.headers}
-                </code>
-              </div>
-            </div>
-          )}
 
           <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
             <span>创建时间: {service.createdAt}</span>
+            <div className="flex items-center space-x-3">
+              <span>工具: {service.tools?.length || 0}</span>
+              <span>提示: {service.prompts?.length || 0}</span>
+            </div>
           </div>
         </div>
       </CardContent>

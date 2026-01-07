@@ -10,6 +10,7 @@ import { MCPEditor } from "./MCPEditor";
 import { MCPCreateForm, MCPCreateData } from "./MCPCreateForm";
 import { MCPImportForm, MCPImportData } from "./MCPImportForm";
 import { GlobalSettings } from "./GlobalSettings";
+import { MCPDetailDialog, MCPService, Tool } from "./MCPDetailDialog";
 
 export interface MCPService {
   id: string;
@@ -19,6 +20,12 @@ export interface MCPService {
   headers?: string;
   status: "active" | "inactive";
   createdAt: string;
+  tools?: Tool[];
+  prompts?: Array<{
+    id: string;
+    name: string;
+    content: string;
+  }>;
 }
 
 export const MCPManagement = () => {
@@ -30,7 +37,49 @@ export const MCPManagement = () => {
       url: "https://api.pangu.example.com/v1",
       headers: '{"Authorization": "Bearer pangu-token"}',
       status: "active",
-      createdAt: "2024-01-10"
+      createdAt: "2024-01-10",
+      tools: [
+        {
+          id: "tool-1",
+          name: "代码生成",
+          description: "根据需求生成高质量代码",
+          enabled: true,
+          details: "支持多种编程语言，包括Python、Java、JavaScript、C++等。可以根据自然语言描述生成代码片段、完整函数或类。"
+        },
+        {
+          id: "tool-2",
+          name: "文本分析",
+          description: "分析文本内容，提取关键信息",
+          enabled: true,
+          details: "支持文本分类、情感分析、实体识别、关键词提取等功能。适用于新闻、评论、社交媒体等多种文本场景。"
+        },
+        {
+          id: "tool-3",
+          name: "图像识别",
+          description: "识别图像中的物体和场景",
+          enabled: false,
+          details: "支持物体检测、场景分类、人脸识别等功能。可应用于安防监控、智能零售、医疗影像等领域。"
+        },
+        {
+          id: "tool-4",
+          name: "语音合成",
+          description: "将文本转换为自然语音",
+          enabled: true,
+          details: "支持多种语言和声音风格，可以调整语速、音调等参数。适用于语音助手、有声读物、导航系统等场景。"
+        }
+      ],
+      prompts: [
+        {
+          id: "prompt-1",
+          name: "系统提示词",
+          content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。"
+        },
+        {
+          id: "prompt-2",
+          name: "代码审查提示词",
+          content: "请审查以下代码，指出潜在的问题、性能瓶颈和改进建议。代码内容如下：\n\n{code}"
+        }
+      ]
     },
     {
       id: "mcp-2",
@@ -39,7 +88,30 @@ export const MCPManagement = () => {
       url: "https://api.ecohub.example.com/v1",
       headers: '{"Authorization": "Bearer ecohub-token", "Content-Type": "application/json"}',
       status: "active",
-      createdAt: "2024-01-11"
+      createdAt: "2024-01-11",
+      tools: [
+        {
+          id: "tool-5",
+          name: "数据分析",
+          description: "分析数据集，生成洞察报告",
+          enabled: true,
+          details: "支持数据清洗、统计分析、可视化等功能。可以处理结构化数据和非结构化数据。"
+        },
+        {
+          id: "tool-6",
+          name: "数据预测",
+          description: "基于历史数据预测未来趋势",
+          enabled: false,
+          details: "使用机器学习算法进行时间序列预测、分类预测等。支持多种预测模型。"
+        }
+      ],
+      prompts: [
+        {
+          id: "prompt-3",
+          name: "数据分析提示词",
+          content: "请分析以下数据，提供关键洞察和建议。数据如下：\n\n{data}"
+        }
+      ]
     }
   ]);
 
@@ -47,6 +119,7 @@ export const MCPManagement = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addMode, setAddMode] = useState<"create" | "import">("create");
   const [editingService, setEditingService] = useState<MCPService | null>(null);
+  const [detailService, setDetailService] = useState<MCPService | null>(null);
   const [globalSettings, setGlobalSettings] = useState({
     autoReconnect: true,
     loadBalancing: true,
@@ -61,7 +134,9 @@ export const MCPManagement = () => {
       url: data.url,
       headers: data.headers || undefined,
       status: "active",
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      tools: [],
+      prompts: []
     };
     setServices([...services, newService]);
     setAddDialogOpen(false);
@@ -76,7 +151,9 @@ export const MCPManagement = () => {
       url: service.url,
       headers: service.headers,
       status: "active" as const,
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      tools: [],
+      prompts: []
     }));
     setServices([...services, ...newServices]);
     setAddDialogOpen(false);
@@ -91,7 +168,22 @@ export const MCPManagement = () => {
 
   const handleDeleteService = (id: string) => {
     setServices(services.filter(s => s.id !== id));
+    setDetailService(null);
     toast.success("MCP服务已删除");
+  };
+
+  const handleToggleTool = (serviceId: string, toolId: string) => {
+    setServices(services.map(service => {
+      if (service.id === serviceId && service.tools) {
+        return {
+          ...service,
+          tools: service.tools.map(tool =>
+            tool.id === toolId ? { ...tool, enabled: !tool.enabled } : tool
+          )
+        };
+      }
+      return service;
+    }));
   };
 
   return (
@@ -167,6 +259,7 @@ export const MCPManagement = () => {
                     key={service.id}
                     service={service}
                     onEdit={setEditingService}
+                    onDetail={setDetailService}
                     onDelete={handleDeleteService}
                   />
                 ))}
@@ -192,6 +285,7 @@ export const MCPManagement = () => {
         </TabsContent>
       </Tabs>
 
+      {/* 编辑对话框 */}
       {editingService && (
         <Dialog open={true} onOpenChange={() => setEditingService(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -205,6 +299,18 @@ export const MCPManagement = () => {
             />
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* 详情对话框 */}
+      {detailService && (
+        <MCPDetailDialog
+          service={detailService}
+          open={true}
+          onOpenChange={() => setDetailService(null)}
+          onEdit={setEditingService}
+          onDelete={handleDeleteService}
+          onToggleTool={handleToggleTool}
+        />
       )}
     </div>
   );
