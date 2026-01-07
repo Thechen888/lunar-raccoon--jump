@@ -16,6 +16,8 @@ export interface MCPService {
   headers?: string;
   status: "active" | "inactive";
   createdAt: string;
+  tools?: any[];
+  prompts?: any[];
 }
 
 interface MCPBatchEditProps {
@@ -37,7 +39,7 @@ interface ImportFormat {
 }
 
 export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEditProps) => {
-  // 转换为导入格式（删除 id、status、createdAt）
+  // 转换为导入格式（删除 id、status、createdAt、tools、prompts）
   const convertToImportFormat = (services: MCPService[]): ImportFormat => {
     return {
       services: services.map(s => ({
@@ -78,18 +80,33 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
   const handleSave = () => {
     const parsed = validateAndParse(jsonText);
     if (parsed) {
-      // 转换回完整格式（添加 id、status、createdAt）
+      // 转换回完整格式，保留所有原有字段（包括 tools 和 prompts）
       const updatedServices: MCPService[] = parsed.services.map((s, index) => {
         const existingService = services.find(service => service.name === s.name && service.url === s.url);
-        return {
-          id: existingService?.id || `mcp-${Date.now()}-${index}`,
-          name: s.name,
-          description: s.description,
-          url: s.url,
-          headers: s.headers,
-          status: existingService?.status || "active",
-          createdAt: existingService?.createdAt || new Date().toISOString().split('T')[0]
-        };
+        
+        if (existingService) {
+          // 如果找到匹配的现有服务，更新配置字段，保留其他所有字段
+          return {
+            ...existingService,
+            name: s.name,
+            description: s.description,
+            url: s.url,
+            headers: s.headers
+          };
+        } else {
+          // 如果是新服务，创建完整的配置对象
+          return {
+            id: `mcp-${Date.now()}-${index}`,
+            name: s.name,
+            description: s.description,
+            url: s.url,
+            headers: s.headers,
+            status: "active",
+            createdAt: new Date().toISOString().split('T')[0],
+            tools: [],
+            prompts: []
+          };
+        }
       });
 
       onUpdateServices(updatedServices);
@@ -188,7 +205,8 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                 <li>直接编辑 JSON 配置，保存时会自动验证格式</li>
                 <li>每个服务必须包含 name、url 字段</li>
-                <li>工具和提示无法通过此处编辑，请在详情页面中查看</li>
+                <li>编辑现有服务时，会保留该服务的 tools 和 prompts 等数据</li>
+                <li>删除服务会从列表中移除该服务</li>
                 <li>可以复制 JSON 内容到其他地方使用</li>
               </ul>
             </div>
