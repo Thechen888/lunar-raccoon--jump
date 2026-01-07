@@ -13,6 +13,16 @@ import { MCPBatchEdit } from "./MCPBatchEdit";
 import { GlobalSettings } from "./GlobalSettings";
 import { MCPDetailDialog, MCPService, Tool } from "./MCPDetailDialog";
 
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  method: string;
+  path: string;
+  enabled: boolean;
+  details: string;
+}
+
 export interface MCPService {
   id: string;
   name: string;

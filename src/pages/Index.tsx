@@ -35,6 +35,8 @@ const Index = () => {
           id: "tool-1",
           name: "代码生成",
           description: "根据需求生成高质量代码",
+          method: "POST",
+          path: "/api/code/generate",
           enabled: true,
           details: "支持多种编程语言，包括Python、Java、JavaScript、C++等。可以根据自然语言描述生成代码片段、完整函数或类。"
         },
@@ -42,6 +44,8 @@ const Index = () => {
           id: "tool-2",
           name: "文本分析",
           description: "分析文本内容，提取关键信息",
+          method: "POST",
+          path: "/api/text/analyze",
           enabled: true,
           details: "支持文本分类、情感分析、实体识别、关键词提取等功能。适用于新闻、评论、社交媒体等多种文本场景。"
         }
@@ -64,23 +68,27 @@ const Index = () => {
       createdAt: "2024-01-11",
       tools: [
         {
-          id: "tool-5",
+          id: "tool-3",
           name: "数据分析",
           description: "分析数据集，生成洞察报告",
+          method: "POST",
+          path: "/api/data/analyze",
           enabled: true,
           details: "支持数据清洗、统计分析、可视化等功能。可以处理结构化数据和非结构化数据。"
         },
         {
-          id: "tool-6",
+          id: "tool-4",
           name: "数据预测",
           description: "基于历史数据预测未来趋势",
+          method: "GET",
+          path: "/api/data/predict",
           enabled: false,
           details: "使用机器学习算法进行时间序列预测、分类预测等。支持多种预测模型。"
         }
       ],
       prompts: [
         {
-          id: "prompt-3",
+          id: "prompt-2",
           name: "数据分析提示词",
           content: "请分析以下数据，提供关键洞察和建议。数据如下：\n\n{data}"
         }

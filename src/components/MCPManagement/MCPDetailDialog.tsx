@@ -11,6 +11,8 @@ export interface Tool {
   id: string;
   name: string;
   description: string;
+  method: string;
+  path: string;
   enabled: boolean;
   details: string;
 }
