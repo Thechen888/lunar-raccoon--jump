@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Trash2, Check, X, Download, RefreshCw } from "lucide-react";
+import { Copy, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export interface MCPService {
@@ -16,8 +16,6 @@ export interface MCPService {
   headers?: string;
   status: "active" | "inactive";
   createdAt: string;
-  tools?: any[];
-  prompts?: any[];
 }
 
 interface MCPBatchEditProps {
@@ -66,42 +64,9 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
     }
   };
 
-  const handleFormat = () => {
-    const parsed = validateAndParse(jsonText);
-    if (parsed) {
-      setJsonText(JSON.stringify(parsed, null, 2));
-      toast.success("JSON 已格式化");
-    }
-  };
-
   const handleCopy = () => {
     navigator.clipboard.writeText(jsonText);
     toast.success("已复制到剪贴板");
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([jsonText], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `mcp-services-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("文件已下载");
-  };
-
-  const handleClear = () => {
-    setJsonText("[]");
-    setJsonError(null);
-    toast.success("内容已清空");
-  };
-
-  const handleReset = () => {
-    setJsonText(JSON.stringify(services, null, 2));
-    setJsonError(null);
-    toast.success("已重置为原始数据");
   };
 
   const exampleJson = [
@@ -112,23 +77,9 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
       "url": "https://api.example.com/v1",
       "headers": "{\"Authorization\": \"Bearer token\"}",
       "status": "active",
-      "createdAt": "2024-01-01",
-      "tools": [],
-      "prompts": []
+      "createdAt": "2024-01-01"
     }
   ];
-
-  const handleInsertExample = () => {
-    const parsed = validateAndParse(jsonText);
-    if (parsed) {
-      const newServices = [...parsed, ...exampleJson.map((s, i) => ({
-        ...s,
-        id: `mcp-example-${Date.now()}-${i}`
-      }))];
-      setJsonText(JSON.stringify(newServices, null, 2));
-      toast.success("已插入示例服务");
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -182,38 +133,10 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
 
           {/* 操作按钮 */}
           <div className="flex flex-wrap gap-2">
-            {/* 格式化和验证 */}
-            <Button variant="outline" onClick={handleFormat}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              格式化
-            </Button>
-
             {/* 复制 */}
             <Button variant="outline" onClick={handleCopy}>
               <Copy className="h-4 w-4 mr-2" />
               复制
-            </Button>
-
-            {/* 下载 */}
-            <Button variant="outline" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              下载
-            </Button>
-
-            {/* 插入示例 */}
-            <Button variant="outline" onClick={handleInsertExample}>
-              插入示例
-            </Button>
-
-            {/* 清空 */}
-            <Button variant="outline" onClick={handleClear}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              清空
-            </Button>
-
-            {/* 重置 */}
-            <Button variant="outline" onClick={handleReset}>
-              重置
             </Button>
           </div>
 
@@ -222,10 +145,9 @@ export const MCPBatchEdit = ({ services, onUpdateServices, onClose }: MCPBatchEd
             <div className="text-sm space-y-1">
               <div className="font-medium">使用说明：</div>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>直接编辑 JSON 配置，格式化后保存</li>
-                <li>支持批量添加、删除、修改服务</li>
+                <li>直接编辑 JSON 配置，保存时会自动验证格式</li>
                 <li>每个服务必须包含 id、name、url 字段</li>
-                <li>保存时会自动验证 JSON 格式</li>
+                <li>工具和提示无法通过此处编辑，请在详情页面中查看</li>
                 <li>可以复制 JSON 内容到其他地方使用</li>
               </ul>
             </div>
