@@ -67,6 +67,34 @@ export const MCPManagement = () => {
           description: "将文本转换为自然语音",
           enabled: true,
           details: "支持多种语言和声音风格，可以调整语速、音调等参数。适用于语音助手、有声读物、导航系统等场景。"
+        },
+        {
+          id: "tool-5",
+          name: "翻译服务",
+          description: "多语言互译服务",
+          enabled: false,
+          details: "支持100+语言的实时翻译，包括中英日韩法德等主流语言。适用于文档翻译、网页翻译、实时对话等场景。"
+        },
+        {
+          id: "tool-6",
+          name: "文档摘要",
+          description: "生成文档摘要",
+          enabled: true,
+          details: "自动提取文档关键信息，生成简洁明了的摘要。适用于长文档快速浏览、会议纪要整理、报告总结等场景。"
+        },
+        {
+          id: "tool-7",
+          name: "数据可视化",
+          description: "将数据转换为图表",
+          enabled: false,
+          details: "支持多种图表类型，包括柱状图、折线图、饼图、散点图等。可以自定义样式和交互效果。"
+        },
+        {
+          id: "tool-8",
+          name: "表格处理",
+          description: "处理和分析表格数据",
+          enabled: true,
+          details: "支持CSV、Excel等多种格式的表格处理，可以进行数据清洗、统计分析、公式计算等操作。"
         }
       ],
       prompts: [
@@ -92,14 +120,14 @@ export const MCPManagement = () => {
       createdAt: "2024-01-11",
       tools: [
         {
-          id: "tool-5",
+          id: "tool-9",
           name: "数据分析",
           description: "分析数据集，生成洞察报告",
           enabled: true,
           details: "支持数据清洗、统计分析、可视化等功能。可以处理结构化数据和非结构化数据。"
         },
         {
-          id: "tool-6",
+          id: "tool-10",
           name: "数据预测",
           description: "基于历史数据预测未来趋势",
           enabled: false,
@@ -179,9 +207,11 @@ export const MCPManagement = () => {
     toast.success("服务状态已更新");
   };
 
-  const handleToggleTool = (serviceId: string, toolId: string) => {
+  const handleToggleTool = (toolId: string) => {
+    if (!detailService) return;
+    
     setServices(services.map(service => {
-      if (service.id === serviceId && service.tools) {
+      if (service.id === detailService.id && service.tools) {
         return {
           ...service,
           tools: service.tools.map(tool =>
@@ -191,6 +221,17 @@ export const MCPManagement = () => {
       }
       return service;
     }));
+
+    // 更新 detailService 状态以反映更改
+    setDetailService(prev => {
+      if (!prev || !prev.tools) return prev;
+      return {
+        ...prev,
+        tools: prev.tools.map(tool =>
+          tool.id === toolId ? { ...tool, enabled: !tool.enabled } : tool
+        )
+      };
+    });
   };
 
   const handleBatchUpdateServices = (updatedServices: MCPService[]) => {

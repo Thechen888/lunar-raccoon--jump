@@ -39,7 +39,7 @@ interface MCPDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onEdit: (service: MCPService) => void;
   onDelete: (id: string) => void;
-  onToggleTool: (serviceId: string, toolId: string) => void;
+  onToggleTool: (toolId: string) => void;
 }
 
 export const MCPDetailDialog = ({ 
@@ -53,13 +53,13 @@ export const MCPDetailDialog = ({
   const [activeTab, setActiveTab] = useState("info");
 
   const handleToggleTool = (toolId: string) => {
-    onToggleTool(service.id, toolId);
+    onToggleTool(toolId);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">{service.name}</DialogTitle>
             <div className="flex items-center space-x-2">
@@ -82,70 +82,74 @@ export const MCPDetailDialog = ({
           </div>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="flex-shrink-0">
             <TabsTrigger value="info">基本信息</TabsTrigger>
             <TabsTrigger value="tools">工具</TabsTrigger>
             <TabsTrigger value="prompts">提示</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">状态</label>
-                <div className="mt-1">
-                  <Badge variant={service.status === "active" ? "default" : "secondary"}>
-                    {service.status === "active" ? "启用" : "禁用"}
-                  </Badge>
+          <TabsContent value="info" className="flex-1 overflow-y-auto mt-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">状态</label>
+                  <div className="mt-1">
+                    <Badge variant={service.status === "active" ? "default" : "secondary"}>
+                      {service.status === "active" ? "启用" : "禁用"}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">创建时间</label>
+                  <div className="mt-1">{service.createdAt}</div>
                 </div>
               </div>
+              
               <div>
-                <label className="text-sm font-medium text-muted-foreground">创建时间</label>
-                <div className="mt-1">{service.createdAt}</div>
+                <label className="text-sm font-medium text-muted-foreground">描述</label>
+                <p className="mt-1 text-sm">{service.description || "无描述"}</p>
               </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">描述</label>
-              <p className="mt-1 text-sm">{service.description || "无描述"}</p>
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <div className="flex-1">
-                <label className="text-sm font-medium text-muted-foreground">URL</label>
-                <code className="block mt-1 text-sm bg-muted px-3 py-2 rounded">
-                  {service.url}
-                </code>
-              </div>
-            </div>
-
-            {service.headers && (
-              <div className="flex items-start space-x-2">
-                <Code className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div className="flex items-center space-x-2">
+                <Globe className="h-4 w-4 text-muted-foreground" />
                 <div className="flex-1">
-                  <label className="text-sm font-medium text-muted-foreground">请求头</label>
-                  <code className="block mt-1 text-sm bg-muted px-3 py-2 rounded whitespace-pre-wrap">
-                    {service.headers}
+                  <label className="text-sm font-medium text-muted-foreground">URL</label>
+                  <code className="block mt-1 text-sm bg-muted px-3 py-2 rounded">
+                    {service.url}
                   </code>
                 </div>
               </div>
-            )}
+
+              {service.headers && (
+                <div className="flex items-start space-x-2">
+                  <Code className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-muted-foreground">请求头</label>
+                    <code className="block mt-1 text-sm bg-muted px-3 py-2 rounded whitespace-pre-wrap">
+                      {service.headers}
+                    </code>
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
-          <TabsContent value="tools" className="mt-4">
-            <div className="space-y-2 mb-4">
+          <TabsContent value="tools" className="flex-1 flex flex-col overflow-hidden mt-4">
+            <div className="space-y-2 mb-4 flex-shrink-0">
               <p className="text-sm text-muted-foreground">
                 工具列表自动从服务端拉取，无法手动添加
               </p>
             </div>
-            <ToolList 
-              tools={service.tools || []} 
-              onToggleTool={handleToggleTool}
-            />
+            <div className="flex-1 overflow-hidden">
+              <ToolList 
+                tools={service.tools || []} 
+                onToggleTool={handleToggleTool}
+              />
+            </div>
           </TabsContent>
 
-          <TabsContent value="prompts" className="mt-4">
+          <TabsContent value="prompts" className="flex-1 overflow-y-auto mt-4">
             <div className="space-y-2 mb-4">
               <p className="text-sm text-muted-foreground">
                 提示内容自动从服务端拉取，无法手动添加
