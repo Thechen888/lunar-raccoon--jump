@@ -38,7 +38,7 @@ const Index = () => {
           method: "POST",
           path: "/api/code/generate",
           enabled: true,
-          details: "支持多种编程语言，包括Python、Java、JavaScript、C++等。可以根据自然语言描述生成代码片段、完整函数或类。"
+          projectId: "proj-pangu-001"
         },
         {
           id: "tool-2",
@@ -47,7 +47,7 @@ const Index = () => {
           method: "POST",
           path: "/api/text/analyze",
           enabled: true,
-          details: "支持文本分类、情感分析、实体识别、关键词提取等功能。适用于新闻、评论、社交媒体等多种文本场景。"
+          projectId: "proj-pangu-002"
         }
       ],
       prompts: [
@@ -73,8 +73,7 @@ const Index = () => {
           description: "分析数据集，生成洞察报告",
           method: "POST",
           path: "/api/data/analyze",
-          enabled: true,
-          details: "支持数据清洗、统计分析、可视化等功能。可以处理结构化数据和非结构化数据。"
+          enabled: true
         },
         {
           id: "tool-4",
@@ -82,8 +81,7 @@ const Index = () => {
           description: "基于历史数据预测未来趋势",
           method: "GET",
           path: "/api/data/predict",
-          enabled: false,
-          details: "使用机器学习算法进行时间序列预测、分类预测等。支持多种预测模型。"
+          enabled: false
         }
       ],
       prompts: [

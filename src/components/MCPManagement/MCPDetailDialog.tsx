@@ -14,7 +14,9 @@ export interface Tool {
   method: string;
   path: string;
   enabled: boolean;
-  details: string;
+  details?: string;
+  projectId?: string;
+  [key: string]: any; // 支持其他动态字段
 }
 
 export interface Prompt {

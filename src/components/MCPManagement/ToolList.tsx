@@ -13,7 +13,9 @@ export interface Tool {
   method: string;
   path: string;
   enabled: boolean;
-  details: string;
+  details?: string;
+  projectId?: string;
+  [key: string]: any;
 }
 
 interface ToolListProps {
@@ -127,9 +129,32 @@ export const ToolList = ({ tools, onToggleTool }: ToolListProps) => {
                 {expandedTools.has(tool.id) && (
                   <CardContent className="pt-0">
                     <div className="border-t pt-3">
-                      <div className="text-sm">
-                        <span className="font-medium">工具详情：</span>
-                        <p className="text-muted-foreground mt-1 whitespace-pre-wrap">{tool.details}</p>
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        {/* Method */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground font-medium">Method</span>
+                          <code className="bg-muted px-2 py-1 rounded text-xs">
+                            {tool.method}
+                          </code>
+                        </div>
+                        
+                        {/* Path */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground font-medium">Path</span>
+                          <code className="bg-muted px-2 py-1 rounded text-xs max-w-[200px] truncate">
+                            {tool.path}
+                          </code>
+                        </div>
+                        
+                        {/* ProjectId - 如果存在 */}
+                        {tool.projectId && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground font-medium">ProjectId</span>
+                            <code className="bg-muted px-2 py-1 rounded text-xs">
+                              {tool.projectId}
+                            </code>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
