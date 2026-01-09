@@ -14,11 +14,12 @@ interface MCPManagementProps {
 export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps) => {
   const [detailService, setDetailService] = useState<MCPService | null>(null);
 
-  // 初始化层级数据结构
+  // 初始化层级数据结构 - 支持不同层级
   const [providers, setProviders] = useState<MCPProvider[]>([
     {
       id: "pangu",
       name: "PANGU",
+      layer: 3, // 三层：提供商 -> 区域 -> 复杂度
       regions: [
         {
           id: "pangu-china",
@@ -117,91 +118,49 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
     {
       id: "hub",
       name: "HUB",
+      layer: 2, // 二层：提供商 -> 区域
       regions: [
         {
           id: "hub-china",
           name: "中国",
-          complexities: [
-            {
-              id: "hub-china-simple",
-              name: "精简",
-              service: undefined
-            },
-            {
-              id: "hub-china-normal",
-              name: "一般",
-              service: undefined
-            },
-            {
-              id: "hub-china-complex",
-              name: "复杂",
-              service: {
-                name: "hub-中国-复杂",
-                description: "EcoHub生态系统服务-中国区域-复杂模式",
-                url: "https://api.hub.complex.example.com/v1",
-                headers: '{"Authorization": "Bearer ecohub-token", "Content-Type": "application/json"}'
-              }
-            },
-            {
-              id: "hub-china-complete",
-              name: "完全",
-              service: undefined
-            }
-          ]
+          complexities: [], // 二层模式下不使用复杂度
+          service: {
+            name: "hub-中国",
+            description: "EcoHub生态系统服务-中国区域",
+            url: "https://api.hub.china.example.com/v1",
+            headers: '{"Authorization": "Bearer ecohub-token", "Content-Type": "application/json"}'
+          }
         },
         {
           id: "hub-europe",
           name: "欧洲",
-          complexities: [
-            {
-              id: "hub-europe-simple",
-              name: "精简",
-              service: undefined
-            },
-            {
-              id: "hub-europe-normal",
-              name: "一般",
-              service: undefined
-            },
-            {
-              id: "hub-europe-complex",
-              name: "复杂",
-              service: undefined
-            },
-            {
-              id: "hub-europe-complete",
-              name: "完全",
-              service: undefined
-            }
-          ]
+          complexities: [],
+          service: undefined
         },
         {
           id: "hub-usa",
           name: "美国",
-          complexities: [
-            {
-              id: "hub-usa-simple",
-              name: "精简",
-              service: undefined
-            },
-            {
-              id: "hub-usa-normal",
-              name: "一般",
-              service: undefined
-            },
-            {
-              id: "hub-usa-complex",
-              name: "复杂",
-              service: undefined
-            },
-            {
-              id: "hub-usa-complete",
-              name: "完全",
-              service: undefined
-            }
-          ]
+          complexities: [],
+          service: {
+            name: "hub-美国",
+            description: "EcoHub生态系统服务-美国区域",
+            url: "https://api.hub.usa.example.com/v1",
+            headers: '{"Authorization": "Bearer ecohub-token"}'
+          }
         }
       ]
+    },
+    {
+      id: "simple-provider",
+      name: "Simple Provider",
+      layer: 1, // 一层：直接在提供商上配置
+      regions: [],
+      service: {
+        name: "Simple-Provider",
+        description: "简单服务提供商示例",
+        url: "https://api.simple.example.com/v1",
+        headers: '{"Authorization": "Bearer simple-token"}'
+      }
     }
   ]);
 
@@ -210,15 +169,29 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
     const services: MCPService[] = [];
     
     providers.forEach(provider => {
-      provider.regions.forEach(region => {
-        region.complexities.forEach(complexity => {
-          if (complexity.service) {
+      if (provider.layer === 1 && provider.service) {
+        // 一层模式：提供商上直接配置
+        services.push({
+          id: `${provider.id}`,
+          name: provider.service.name,
+          description: provider.service.description || "",
+          url: provider.service.url,
+          headers: provider.service.headers,
+          status: "active",
+          createdAt: "2024-01-01",
+          tools: [],
+          prompts: []
+        });
+      } else if (provider.layer === 2) {
+        // 二层模式：区域上配置
+        provider.regions.forEach(region => {
+          if (region.service) {
             services.push({
-              id: `${provider.id}-${region.id}-${complexity.id}`,
-              name: complexity.service.name,
-              description: complexity.service.description || "",
-              url: complexity.service.url,
-              headers: complexity.service.headers,
+              id: `${provider.id}-${region.id}`,
+              name: region.service.name,
+              description: region.service.description || "",
+              url: region.service.url,
+              headers: region.service.headers,
               status: "active",
               createdAt: "2024-01-01",
               tools: [],
@@ -226,7 +199,26 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
             });
           }
         });
-      });
+      } else if (provider.layer === 3) {
+        // 三层模式：复杂度上配置
+        provider.regions.forEach(region => {
+          region.complexities.forEach(complexity => {
+            if (complexity.service) {
+              services.push({
+                id: `${provider.id}-${region.id}-${complexity.id}`,
+                name: complexity.service.name,
+                description: complexity.service.description || "",
+                url: complexity.service.url,
+                headers: complexity.service.headers,
+                status: "active",
+                createdAt: "2024-01-01",
+                tools: [],
+                prompts: []
+              });
+            }
+          });
+        });
+      }
     });
     
     return services;
@@ -245,29 +237,45 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
   };
 
   const handleDeleteService = (serviceId: string) => {
-    const [providerId, regionId, complexityId] = serviceId.split('-');
+    const parts = serviceId.split('-');
     
     const newProviders = providers.map(provider => {
-      if (provider.id !== providerId) return provider;
+      if (provider.id !== parts[0]) return provider;
       
-      return {
-        ...provider,
-        regions: provider.regions.map(region => {
-          if (region.id !== regionId) return region;
-          
-          return {
-            ...region,
-            complexities: region.complexities.map(complexity => {
-              if (complexity.id !== complexityId) return complexity;
-              
-              return {
-                ...complexity,
-                service: undefined
-              };
-            })
-          };
-        })
-      };
+      if (provider.layer === 1) {
+        // 一层模式：删除提供商的服务配置
+        return { ...provider, service: undefined };
+      }
+      
+      if (provider.layer === 2 && parts.length >= 2) {
+        // 二层模式：删除区域的服务配置
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== parts[1]) return region;
+            return { ...region, service: undefined };
+          })
+        };
+      }
+      
+      if (provider.layer === 3 && parts.length >= 3) {
+        // 三层模式：删除复杂度的服务配置
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== parts[1]) return region;
+            return {
+              ...region,
+              complexities: region.complexities.map(complexity => {
+                if (complexity.id !== parts[2]) return complexity;
+                return { ...complexity, service: undefined };
+              })
+            };
+          })
+        };
+      }
+      
+      return provider;
     });
     
     handleProvidersChange(newProviders);
@@ -289,7 +297,7 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
               <span>MCP 服务配置</span>
             </CardTitle>
             <CardDescription>
-              按层级配置 MCP 服务：服务提供商 → 区域 → 复杂度
+              按层级配置 MCP 服务：一层（提供商）、二层（提供商 → 区域）、三层（提供商 → 区域 → 复杂度）
             </CardDescription>
           </div>
         </CardHeader>

@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,12 +33,15 @@ export interface MCPRegion {
   id: string;
   name: string;
   complexities: MCPComplexity[];
+  service?: MCPServiceConfig; // 二层模式下，区域上可以配置服务
 }
 
 export interface MCPProvider {
   id: string;
   name: string;
+  layer: number; // 1, 2, or 3
   regions: MCPRegion[];
+  service?: MCPServiceConfig; // 一层模式下，提供商上直接配置服务
 }
 
 interface MCPComplexityTreeProps {
@@ -53,8 +56,9 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [configuringComplexity, setConfiguringComplexity] = useState<{
     providerId: string;
-    regionId: string;
-    complexityId: string;
+    regionId?: string;
+    complexityId?: string;
+    configTarget: "provider" | "region" | "complexity";
   } | null>(null);
 
   // 编辑对话框状态
@@ -107,8 +111,9 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     setSelectedComplexity(`${providerId}-${regionId}-${complexityId}`);
   };
 
-  const handleOpenConfig = (providerId: string, regionId: string, complexityId: string) => {
-    setConfiguringComplexity({ providerId, regionId, complexityId });
+  // 打开配置对话框
+  const handleOpenConfig = (providerId: string, configTarget: "provider" | "region" | "complexity", regionId?: string, complexityId?: string) => {
+    setConfiguringComplexity({ providerId, regionId, complexityId, configTarget });
     setConfigDialogOpen(true);
   };
 
@@ -118,24 +123,37 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     const newProviders = providers.map(provider => {
       if (provider.id !== configuringComplexity.providerId) return provider;
       
-      return {
-        ...provider,
-        regions: provider.regions.map(region => {
-          if (region.id !== configuringComplexity.regionId) return region;
-          
-          return {
-            ...region,
-            complexities: region.complexities.map(complexity => {
-              if (complexity.id !== configuringComplexity.complexityId) return complexity;
-              
-              return {
-                ...complexity,
-                service: config
-              };
-            })
-          };
-        })
-      };
+      if (configuringComplexity.configTarget === "provider") {
+        return { ...provider, service: config };
+      }
+      
+      if (configuringComplexity.configTarget === "region" && configuringComplexity.regionId) {
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== configuringComplexity.regionId) return region;
+            return { ...region, service: config };
+          })
+        };
+      }
+      
+      if (configuringComplexity.configTarget === "complexity" && configuringComplexity.regionId && configuringComplexity.complexityId) {
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== configuringComplexity.regionId) return region;
+            return {
+              ...region,
+              complexities: region.complexities.map(complexity => {
+                if (complexity.id !== configuringComplexity.complexityId) return complexity;
+                return { ...complexity, service: config };
+              })
+            };
+          })
+        };
+      }
+      
+      return provider;
     });
 
     onProvidersChange(newProviders);
@@ -145,17 +163,19 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   };
 
   // 服务提供商操作
-  const handleCreateProvider = (data: { id: string; name: string }) => {
+  const handleCreateProvider = (data: { id: string; name: string; layer: number }) => {
     const newProviders = [...providers, {
       id: data.id,
       name: data.name,
-      regions: []
+      layer: data.layer,
+      regions: [],
+      service: undefined
     }];
     onProvidersChange(newProviders);
     toast.success("服务提供商已添加");
   };
 
-  const handleEditProvider = (data: { id: string; name: string }) => {
+  const handleEditProvider = (data: { id: string; name: string; layer?: number }) => {
     if (!editingProvider) return;
     const newProviders = providers.map(p => 
       p.id === editingProvider.id ? { ...p, name: data.name } : p
@@ -183,7 +203,8 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         regions: [...provider.regions, {
           id: data.id,
           name: data.name,
-          complexities: []
+          complexities: [],
+          service: undefined
         }]
       };
     });
@@ -312,6 +333,11 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     return selectedComplexity === `${providerId}-${regionId}-${complexityId}`;
   };
 
+  const getLayerBadge = (layer: number) => {
+    const labels = { 1: "一层", 2: "二层", 3: "三层" };
+    return labels[layer as keyof typeof labels] || "三层";
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
@@ -334,9 +360,24 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
                 <CardTitle className="text-lg">{provider.name}</CardTitle>
+                <Badge variant="outline" className="flex items-center space-x-1">
+                  <Layers className="h-3 w-3" />
+                  <span>{getLayerBadge(provider.layer)}</span>
+                </Badge>
+                {provider.service && (
+                  <Badge variant="secondary" className="text-xs">已配置</Badge>
+                )}
               </div>
               <div className="flex items-center space-x-2">
-                <Badge variant="outline">{provider.regions.length} 个区域</Badge>
+                {provider.layer === 1 && (
+                  <Badge variant="outline">{provider.regions.length} 个区域（不使用）</Badge>
+                )}
+                {provider.layer === 2 && (
+                  <Badge variant="outline">{provider.regions.length} 个区域</Badge>
+                )}
+                {provider.layer === 3 && (
+                  <Badge variant="outline">{provider.regions.length} 个区域</Badge>
+                )}
                 <Button variant="ghost" size="sm" onClick={(e) => {
                   e.stopPropagation();
                   setEditingProvider(provider);
@@ -356,11 +397,22 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                 }}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenConfig(provider.id, "provider");
+                  }}
+                  title="配置服务"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </CardHeader>
           
-          {expandedProviders.has(provider.id) && (
+          {expandedProviders.has(provider.id) && provider.layer > 1 && (
             <CardContent className="pl-6 space-y-2">
               {provider.regions.map((region) => (
                 <div key={region.id} className="border-l-2 border-border pl-4">
@@ -375,9 +427,17 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       )}
                       <span className="font-medium text-sm">{region.name}</span>
+                      {region.service && (
+                        <Badge variant="secondary" className="text-xs">已配置</Badge>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      {region.complexities.some(c => c.service) && (
+                      {provider.layer === 2 && region.complexities.some(c => c.service) && (
+                        <Badge variant="secondary" className="text-xs">
+                          子层已配置
+                        </Badge>
+                      )}
+                      {provider.layer === 3 && region.complexities.some(c => c.service) && (
                         <Badge variant="secondary" className="text-xs">
                           已配置
                         </Badge>
@@ -400,10 +460,22 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                       }}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
+                      {/* 二层模式下，区域上可以配置服务 */}
+                      {provider.layer === 2 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenConfig(provider.id, "region", region.id)}
+                          title="配置服务"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
 
-                  {expandedRegions.has(region.id) && (
+                  {/* 三层模式显示复杂度 */}
+                  {provider.layer === 3 && expandedRegions.has(region.id) && (
                     <div className="space-y-2 mt-2">
                       {region.complexities.map((complexity) => (
                         <div
@@ -469,7 +541,8 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleOpenConfig(provider.id, region.id, complexity.id)}
+                                onClick={() => handleOpenConfig(provider.id, "complexity", region.id, complexity.id)}
+                                title="配置服务"
                               >
                                 <Settings className="h-4 w-4" />
                               </Button>
@@ -501,23 +574,25 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                 </div>
               ))}
 
-              {/* 添加区域按钮 */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-2"
-                onClick={() => {
-                  setEditingRegion({
-                    providerId: provider.id,
-                    region: { id: "", name: "", complexities: [] }
-                  });
-                  setRegionMode("create");
-                  setRegionDialogOpen(true);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                添加区域
-              </Button>
+              {/* 添加区域按钮 - 只在二层和三层模式下显示 */}
+              {provider.layer > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    setEditingRegion({
+                      providerId: provider.id,
+                      region: { id: "", name: "", complexities: [] }
+                    });
+                    setRegionMode("create");
+                    setRegionDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  添加区域
+                </Button>
+              )}
             </CardContent>
           )}
         </Card>
@@ -547,9 +622,19 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
             <MCPProviderConfig
               initialData={(() => {
                 const provider = providers.find(p => p.id === configuringComplexity.providerId);
-                const region = provider?.regions.find(r => r.id === configuringComplexity.regionId);
-                const complexity = region?.complexities.find(c => c.id === configuringComplexity.complexityId);
-                return complexity?.service;
+                if (configuringComplexity.configTarget === "provider") {
+                  return provider?.service;
+                }
+                if (configuringComplexity.configTarget === "region" && configuringComplexity.regionId) {
+                  const region = provider?.regions.find(r => r.id === configuringComplexity.regionId);
+                  return region?.service;
+                }
+                if (configuringComplexity.configTarget === "complexity" && configuringComplexity.regionId && configuringComplexity.complexityId) {
+                  const region = provider?.regions.find(r => r.id === configuringComplexity.regionId);
+                  const complexity = region?.complexities.find(c => c.id === configuringComplexity.complexityId);
+                  return complexity?.service;
+                }
+                return undefined;
               })()}
               onSave={handleSaveConfig}
               onCancel={() => {

@@ -3,17 +3,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface EditProviderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  provider?: { id: string; name: string } | null;
-  onSave: (data: { id: string; name: string }) => void;
+  provider?: { id: string; name: string; layer?: number } | null;
+  onSave: (data: { id: string; name: string; layer: number }) => void;
   mode: "create" | "edit";
 }
 
 export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode }: EditProviderDialogProps) => {
   const [name, setName] = useState(provider?.name || "");
+  const [layer, setLayer] = useState(provider?.layer ?? 3);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -22,9 +24,11 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
     }
     onSave({
       id: provider?.id || `provider-${Date.now()}`,
-      name: name.trim()
+      name: name.trim(),
+      layer
     });
     setName("");
+    setLayer(3);
     onOpenChange(false);
   };
 
@@ -46,6 +50,40 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
               placeholder="例如：PANGU"
             />
           </div>
+          {mode === "create" && (
+            <div>
+              <Label>层级结构 <span className="text-red-500">*</span></Label>
+              <RadioGroup value={layer.toString()} onValueChange={(v) => setLayer(parseInt(v))}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="1" id="layer-1" />
+                  <Label htmlFor="layer-1" className="cursor-pointer">
+                    <div>
+                      <span className="font-medium">一层</span>
+                      <p className="text-xs text-muted-foreground">直接在提供商上配置服务</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <RadioGroupItem value="2" id="layer-2" />
+                  <Label htmlFor="layer-2" className="cursor-pointer">
+                    <div>
+                      <span className="font-medium">二层</span>
+                      <p className="text-xs text-muted-foreground">提供商 → 区域，在区域上配置</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="3" id="layer-3" />
+                  <Label htmlFor="layer-3" className="cursor-pointer">
+                    <div>
+                      <span className="font-medium">三层</span>
+                      <p className="text-xs text-muted-foreground">提供商 → 区域 → 复杂度，在复杂度上配置</p>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
