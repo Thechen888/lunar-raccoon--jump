@@ -29,10 +29,10 @@ interface OriginalDocument {
   type: string;
   size: number;
   uploadDate: string;
-  status: "processed" | "processing"; // 已处理=成功转换markdown，处理中=正在转换markdown
+  status: "processed" | "processing";
   tags: string[];
   collectionId: string;
-  markdownContent?: string; // 转换后的markdown内容
+  markdownContent?: string;
 }
 
 interface DocumentCollection {
@@ -322,7 +322,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     return matchesSearch && matchesStatus && matchesDocument;
   });
 
-  // 按文档分组QA
+  // 按文档分组QA - 添加安全检查
   const qaByDocument = (documents || []).reduce((acc, doc) => {
     const docQaItems = filteredQaItems.filter(qa => qa.documentId === doc.id);
     if (docQaItems.length > 0) {
