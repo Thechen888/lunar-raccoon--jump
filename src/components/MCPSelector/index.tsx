@@ -29,7 +29,11 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // 切换提供商展开/折叠
-  const toggleProvider = (providerId: string) => {
+  const toggleProvider = (providerId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const provider = providers.find(p => p.id === providerId);
+    if (!provider || provider.layer === 1) return; // 一层不展开
+    
     const newExpanded = new Set(expandedProviders);
     if (newExpanded.has(providerId)) {
       newExpanded.delete(providerId);
@@ -39,9 +43,24 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
     setExpandedProviders(newExpanded);
   };
 
-  // 检查提供商是否被选中
+  // 检查提供商是否被选中（选中最后一层才算选中）
   const isProviderSelected = (providerId: string) => {
-    return selectedMCPs.some(s => s.providerId === providerId);
+    const selection = selectedMCPs.find(s => s.providerId === providerId);
+    if (!selection) return false;
+    
+    const provider = providers.find(p => p.id === providerId);
+    if (!provider) return false;
+    
+    // 一层：只需要选中provider
+    if (provider.layer === 1) return true;
+    
+    // 二层：需要选中至少一个区域
+    if (provider.layer === 2) return selection.regionIds.length > 0;
+    
+    // 三层：需要选中至少一个区域和复杂度
+    if (provider.layer === 3) return selection.regionIds.length > 0 && selection.complexityId !== "";
+    
+    return false;
   };
 
   // 检查区域是否被选中
@@ -56,27 +75,39 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
     return selection?.complexityId === complexityId;
   };
 
-  // 处理提供商选择（多选）
-  const handleToggleProvider = (providerId: string) => {
+  // 处理提供商选择（一层多选，二三层只是展开/折叠）
+  const handleToggleProvider = (providerId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
     const provider = providers.find(p => p.id === providerId);
     if (!provider) return;
 
     const newSelections = selectedMCPs.filter(s => s.providerId !== providerId);
     
-    // 如果之前没选中，现在选中
-    if (!isProviderSelected(providerId)) {
-      newSelections.push({
-        providerId,
-        regionIds: provider.layer > 1 ? [] : [],
-        complexityId: ""
-      });
+    // 一层：直接选中/取消
+    if (provider.layer === 1) {
+      if (!isProviderSelected(providerId)) {
+        newSelections.push({
+          providerId,
+          regionIds: [],
+          complexityId: ""
+        });
+      }
+    } else {
+      // 二三层：创建选择项但不标记为选中
+      if (!selectedMCPs.some(s => s.providerId === providerId)) {
+        newSelections.push({
+          providerId,
+          regionIds: [],
+          complexityId: ""
+        });
+      }
     }
     
     onSelect(newSelections);
     
     // 选中时自动展开
-    if (!isProviderSelected(providerId) && provider.layer > 1) {
-      toggleProvider(providerId);
+    if (provider.layer > 1) {
+      toggleProvider(providerId, event);
     }
   };
 
@@ -152,71 +183,74 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
           
           return (
             <div key={provider.id} className="border rounded-lg overflow-hidden">
-              {/* 第一层：服务提供商（多选） */}
-              <div
-                className={`p-3 cursor-pointer transition-colors flex items-center justify-between ${
-                  providerSelected ? "bg-primary/5" : "hover:bg-muted/50"
-                }`}
-                onClick={() => {
-                  handleToggleProvider(provider.id);
-                }}
-              >
-                <div className="flex items-center space-x-3 flex-1">
-                  <Checkbox 
-                    checked={providerSelected}
-                    onCheckedChange={() => {
-                      handleToggleProvider(provider.id);
-                    }}
-                    className="mt-0.5"
-                  />
-                  <div className="flex items-center space-x-2 flex-1">
-                    <span className={`text-sm font-medium ${providerSelected ? "text-primary" : ""}`}>
-                      {provider.name}
-                    </span>
-                    {providerSelected && <Check className="h-3 w-3 text-primary" />}
+              {/* 第一层：服务提供商 */}
+              <div className="p-3 hover:bg-muted/50">
+                <div className="flex items-center justify-between">
+                  {/* 左侧：checkbox和名称 */}
+                  <div className="flex items-center space-x-3 flex-1">
+                    {provider.layer === 1 && (
+                      <Checkbox 
+                        checked={providerSelected}
+                        onCheckedChange={() => {
+                          const event = { stopPropagation: () => {} } as React.MouseEvent;
+                          handleToggleProvider(provider.id, event);
+                        }}
+                        className="mt-0.5"
+                      />
+                    )}
+                    <div className="flex items-center space-x-2 flex-1">
+                      <span className={`text-sm font-medium ${providerSelected ? "text-primary" : ""}`}>
+                        {provider.name}
+                      </span>
+                      {providerSelected && <Check className="h-3 w-3 text-primary" />}
+                    </div>
+                    <Badge variant="outline" className="flex items-center space-x-1 text-xs">
+                      <Layers className="h-3 w-3" />
+                      <span>{getLayerBadge(provider.layer)}</span>
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{provider.description}</span>
                   </div>
-                  <Badge variant="outline" className="flex items-center space-x-1 text-xs">
-                    <Layers className="h-3 w-3" />
-                    <span>{getLayerBadge(provider.layer)}</span>
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">{provider.description}</span>
+                  
+                  {/* 右侧：展开按钮 */}
+                  {canExpand && (
+                    <button
+                      onClick={(e) => toggleProvider(provider.id, e)}
+                      className="ml-2 p-1 hover:bg-muted rounded transition-colors"
+                    >
+                      {expandedProviders.has(provider.id) ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </button>
+                  )}
                 </div>
-                {canExpand ? (
-                  expandedProviders.has(provider.id) ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground ml-2" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
-                  )
-                ) : null}
               </div>
 
               {/* 二层和三层模式下显示区域 */}
               {canExpand && expandedProviders.has(provider.id) && (
-                <div className="border-t bg-muted/20 p-2 space-y-1">
-                  <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-2">
+                <div className="border-t bg-muted/20 p-3 space-y-3">
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                     <span>区域（多选）:</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {provider.regions?.map((region) => {
                       const regionSelected = isRegionSelected(provider.id, region.id);
                       return (
                         <div
                           key={region.id}
-                          className={`p-2 rounded cursor-pointer transition-colors text-xs ${
+                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
                             regionSelected ? "bg-primary/10 border border-primary/30" : "border border-transparent hover:border-border"
                           }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleRegion(provider.id, region.id);
-                          }}
+                          onClick={() => handleToggleRegion(provider.id, region.id)}
                         >
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               checked={regionSelected}
                               onCheckedChange={() => handleToggleRegion(provider.id, region.id)}
-                              className="h-3 w-3"
+                              className="mt-0.5"
                             />
-                            <span>{region.name}</span>
+                            <span className="text-sm">{region.name}</span>
                             {regionSelected && <Check className="h-3 w-3 text-primary" />}
                           </div>
                         </div>
@@ -228,31 +262,28 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
 
               {/* 三层模式显示复杂度（单选） */}
               {canExpand && expandedProviders.has(provider.id) && provider.layer === 3 && (
-                <div className="border-t bg-muted/20 p-2">
-                  <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-2">
+                <div className="border-t bg-muted/20 p-3">
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-3">
                     <span>复杂度（单选）:</span>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-2">
                     {provider.complexityLevels?.map((level) => {
                       const levelSelected = isComplexitySelected(provider.id, level.id);
                       return (
                         <div
                           key={level.id}
-                          className={`p-2 rounded cursor-pointer transition-colors text-xs ${
+                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
                             levelSelected ? "bg-primary/10 border border-primary/30" : "border border-transparent hover:border-border"
                           }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleComplexity(provider.id, level.id);
-                          }}
+                          onClick={() => handleToggleComplexity(provider.id, level.id)}
                         >
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               checked={levelSelected}
                               onCheckedChange={() => handleToggleComplexity(provider.id, level.id)}
-                              className="h-3 w-3"
+                              className="mt-0.5"
                             />
-                            <span>{level.name}</span>
+                            <span className="text-sm">{level.name}</span>
                             {levelSelected && <Check className="h-3 w-3 text-primary" />}
                           </div>
                         </div>
@@ -278,14 +309,14 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
               const serviceIds = getServiceIds(selection);
               
               return (
-                <div key={selection.providerId} className="bg-primary/5 p-2 rounded-md">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium">{provider?.name}</span>
+                <div key={selection.providerId} className="bg-primary/5 p-3 rounded-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{provider?.name}</span>
                     <Badge variant="outline" className="text-xs">
                       {selectedComplexity?.name || (provider?.layer === 2 ? "区域模式" : "单层模式")}
                     </Badge>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mb-2">
                     {selectedRegions.map((region) => (
                       <Badge key={region.id} variant="secondary" className="text-xs">
                         {region.name}
@@ -293,7 +324,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                     ))}
                   </div>
                   {selectedRegions.length > 0 && (
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       共 {selectedRegions.length} 个区域
                       {selectedComplexity && ` 使用 ${selectedComplexity.name} 模式`}
                     </div>
