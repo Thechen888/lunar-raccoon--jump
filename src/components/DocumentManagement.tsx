@@ -483,24 +483,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
-  const getConversionStatusBadge = (status: "none" | "processing" | "completed") => {
-    const variants = {
-      none: "outline",
-      processing: "secondary",
-      completed: "default"
-    } as const;
-    const labels = {
-      none: "未转换",
-      processing: "转换中",
-      completed: "已转换"
-    };
-    return (
-      <Badge variant={variants[status]} className="text-xs">
-        {labels[status]}
-      </Badge>
-    );
-  };
-
   // QA编辑功能
   const handleEditQa = (qa: QAItem) => {
     setEditingQa(qa);
@@ -897,7 +879,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             <Badge variant={doc.status === "processed" ? "default" : "secondary"} className="text-xs">
                               {doc.status === "processed" ? "已处理" : "处理中"}
                             </Badge>
-                            {getConversionStatusBadge(doc.conversionStatus)}
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
                             <span>类型: {doc.type}</span>
@@ -1166,7 +1147,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center justify-between">
               <span>{viewMarkdownDoc?.name} - Markdown预览</span>
-              {getConversionStatusBadge(viewMarkdownDoc?.conversionStatus || "none")}
             </DialogTitle>
             <DialogDescription>
               查看文档转换后的Markdown内容
