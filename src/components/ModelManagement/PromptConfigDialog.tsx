@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
   const [newPromptContent, setNewPromptContent] = useState("");
 
   // 当model变化时，加载其提示词
-  React.useEffect(() => {
+  useEffect(() => {
     if (model) {
       setPrompts(model.prompts || []);
     }
