@@ -127,10 +127,7 @@ export const DocumentManagement = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  // Markdown 预览
   const [previewMarkdown, setPreviewMarkdown] = useState<{ docId: string; title: string; content: string } | null>(null);
-
-  // QA 列表
   const [qaListData, setQaListData] = useState<{ docId: string; title: string; qaList: QAItem[] } | null>(null);
 
   const filteredDocuments = documents.filter(doc => {
@@ -149,7 +146,6 @@ export const DocumentManagement = () => {
   }) => {
     setProcessing(true);
     
-    // 模拟上传
     setTimeout(() => {
       const newDocuments = data.files.map((file, index) => ({
         id: `doc-${Date.now()}-${index}`,
@@ -177,13 +173,8 @@ export const DocumentManagement = () => {
   };
 
   const handleViewMarkdown = (docId: string) => {
-    // 模拟获取 Markdown 内容
     const doc = documents.find(d => d.id === docId);
     if (doc) {
-      // 调用 API 获取 Markdown 内容
-      // GET /api/documents/{docId}/markdown
-      
-      // 模拟内容
       const mockContent = `# ${doc.name}
 
 ## 概述
@@ -222,12 +213,8 @@ function example() {
   };
 
   const handleViewQA = (docId: string) => {
-    // 调用 API 获取 QA 列表
-    // GET /api/documents/{docId}/qa
-    
     const doc = documents.find(d => d.id === docId);
     if (doc) {
-      // 模拟 QA 数据
       const mockQAList: QAItem[] = [
         {
           id: "qa-1",
@@ -261,10 +248,6 @@ function example() {
   };
 
   const handleAskQuestion = async (question: string) => {
-    // 调用 API 进行问答
-    // POST /api/documents/{docId}/ask
-    
-    // 模拟 API 调用
     await new Promise(resolve => setTimeout(resolve, 1500));
     return `根据文档信息，这是一个很好的问题。关于 "${question}"，答案是：这需要根据具体情况来判断。建议您查看相关文档的详细说明。`;
   };
@@ -298,7 +281,6 @@ function example() {
           <TabsTrigger value="documents">文档列表</TabsTrigger>
         </TabsList>
 
-        {/* Collections Tab */}
         <TabsContent value="collections" className="space-y-4">
           <Card>
             <CardHeader>
@@ -371,7 +353,6 @@ function example() {
           </Card>
         </TabsContent>
 
-        {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
@@ -395,7 +376,6 @@ function example() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* 筛选和搜索 */}
               <div className="flex items-center space-x-4 mb-6">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -427,7 +407,6 @@ function example() {
                 </select>
               </div>
 
-              {/* 文档列表 */}
               {filteredDocuments.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   暂无文档
@@ -451,7 +430,6 @@ function example() {
         </TabsContent>
       </Tabs>
 
-      {/* Markdown 预览对话框 */}
       {previewMarkdown && (
         <MarkdownPreview
           open={true}
@@ -461,7 +439,6 @@ function example() {
         />
       )}
 
-      {/* QA 列表对话框 */}
       {qaListData && (
         <QAList
           open={true}
@@ -472,7 +449,6 @@ function example() {
         />
       )}
 
-      {/* 上传对话框 */}
       <UploadDialog
         open={isUploadDialogOpen}
         onOpenChange={setIsUploadDialogOpen}

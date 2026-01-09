@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { X, Search, Copy, Check } from "lucide-react";
+import { Search, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -72,7 +72,6 @@ export const QAList = ({ open, onOpenChange, title, qaList, onAskQuestion }: QAL
         </DialogHeader>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 搜索和提问区域 */}
           <div className="flex-shrink-0 space-y-3 pb-4 border-b">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -99,7 +98,6 @@ export const QAList = ({ open, onOpenChange, title, qaList, onAskQuestion }: QAL
             )}
           </div>
 
-          {/* QA回答显示 */}
           {answer && (
             <div className="flex-shrink-0 p-4 bg-muted rounded-lg mb-4">
               <p className="text-sm font-medium mb-2">回答：</p>
@@ -107,7 +105,6 @@ export const QAList = ({ open, onOpenChange, title, qaList, onAskQuestion }: QAL
             </div>
           )}
 
-          {/* QA列表 */}
           <ScrollArea className="flex-1">
             <div className="space-y-3 pr-4">
               {filteredQAList.length === 0 ? (

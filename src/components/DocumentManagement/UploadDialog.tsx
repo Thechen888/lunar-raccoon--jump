@@ -74,7 +74,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
       files: selectedFiles
     });
 
-    // Reset form
     setCollectionId("");
     setDocumentType("markdown");
     setTags([]);
@@ -101,7 +100,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* 文档集选择 */}
           <div>
             <Label>选择文档集 <span className="text-red-500">*</span></Label>
             <Select value={collectionId} onValueChange={setCollectionId}>
@@ -116,7 +114,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
             </Select>
           </div>
 
-          {/* 文档类型 */}
           <div>
             <Label>文档类型 <span className="text-red-500">*</span></Label>
             <Select value={documentType} onValueChange={(value: "markdown" | "qa") => setDocumentType(value)}>
@@ -130,7 +127,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
             </Select>
           </div>
 
-          {/* 描述 */}
           <div>
             <Label>描述</Label>
             <Textarea
@@ -141,7 +137,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
             />
           </div>
 
-          {/* 标签 */}
           <div>
             <Label>标签</Label>
             <div className="flex space-x-2">
@@ -170,7 +165,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
             )}
           </div>
 
-          {/* 文件选择 */}
           <div>
             <Label>文件 <span className="text-red-500">*</span></Label>
             <div className="mt-2">
@@ -189,7 +183,6 @@ export const UploadDialog = ({ open, onOpenChange, collections, onUpload }: Uplo
             </div>
           </div>
 
-          {/* 已选择的文件列表 */}
           {selectedFiles.length > 0 && (
             <div className="border rounded-md p-3">
               <div className="flex items-center justify-between mb-2">
