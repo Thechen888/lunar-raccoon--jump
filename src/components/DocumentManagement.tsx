@@ -29,7 +29,7 @@ interface OriginalDocument {
   type: string;
   size: number;
   uploadDate: string;
-  status: "processed" | "processing" | "error";
+  status: "processed" | "processing";
   tags: string[];
   collectionId: string;
   conversionStatus: "none" | "processing" | "completed"; // markdown转换状态
@@ -416,7 +416,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
         type: file.name.split('.').pop()?.toUpperCase() || "UNKNOWN",
         size: file.size,
         uploadDate: new Date().toISOString().split('T')[0],
-        status: "processed" as "processed" | "processing" | "error",
+        status: "processed" as "processed" | "processing",
         tags: uploadFormData.tags,
         collectionId: uploadFormData.collectionId,
         conversionStatus: "none" as "none" | "processing" | "completed"
@@ -894,8 +894,8 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           <div className="flex items-center space-x-2 mb-2">
                             <File className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">{doc.name}</span>
-                            <Badge variant={doc.status === "processed" ? "default" : doc.status === "error" ? "destructive" : "secondary"} className="text-xs">
-                              {doc.status === "processed" ? "已处理" : doc.status === "error" ? "错误" : "处理中"}
+                            <Badge variant={doc.status === "processed" ? "default" : "secondary"} className="text-xs">
+                              {doc.status === "processed" ? "已处理" : "处理中"}
                             </Badge>
                             {getConversionStatusBadge(doc.conversionStatus)}
                           </div>
