@@ -247,7 +247,10 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               checked={regionSelected}
-                              onCheckedChange={() => handleToggleRegion(provider.id, region.id)}
+                              onCheckedChange={(checked) => {
+                                handleToggleRegion(provider.id, region.id);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
                               className="mt-0.5"
                             />
                             <span className="text-sm">{region.name}</span>
@@ -280,7 +283,10 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               checked={levelSelected}
-                              onCheckedChange={() => handleToggleComplexity(provider.id, level.id)}
+                              onCheckedChange={(checked) => {
+                                handleToggleComplexity(provider.id, level.id);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
                               className="mt-0.5"
                             />
                             <span className="text-sm">{level.name}</span>

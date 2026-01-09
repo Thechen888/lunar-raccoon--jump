@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, FileText, Server, Lock, Cpu } from "lucide-react";
 import { MCPSelection } from "@/components/MCPSelector";
-import { DocumentSelection } from "@/components/DocumentSelector";
 import { ChatArea } from "@/components/ChatArea";
 import { UserPermissions } from "@/components/UserPermissions";
 import { MCPManagement } from "@/components/MCPManagement";
@@ -14,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 const Index = () => {
   const [activeTab, setActiveTab] = useState("chat");
   const [selectedMCPs, setSelectedMCPs] = useState<MCPSelection[]>([]);
-  const [selectedDoc, setSelectedDoc] = useState<DocumentSelection | null>(null);
   const [user, setUser] = useState<{ name: string; permissions: string[] }>({
     name: "Demo User",
     permissions: ["mcp:read", "docs:read", "chat:write"]
@@ -155,16 +153,6 @@ const Index = () => {
     }
   };
 
-  const handleDocSelect = (selection: DocumentSelection | null) => {
-    setSelectedDoc(selection);
-    if (selection) {
-      toast({
-        title: "向量数据库已选择",
-        description: selection.name,
-      });
-    }
-  };
-
   const handleServicesChange = (newServices: typeof mcpServices) => {
     setMcpServices(newServices);
   };
@@ -205,9 +193,7 @@ const Index = () => {
         <TabsContent value="chat">
           <ChatArea
             selectedMCPs={selectedMCPs}
-            selectedDoc={selectedDoc}
             onMCPSelect={handleMCPSelect}
-            onDocSelect={handleDocSelect}
             mcpProviders={mcpProviders}
           />
         </TabsContent>
