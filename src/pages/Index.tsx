@@ -6,7 +6,7 @@ import { MCPSelection } from "@/components/MCPSelector";
 import { ChatArea } from "@/components/ChatArea";
 import { UserPermissions } from "@/components/UserPermissions";
 import { MCPManagement } from "@/components/MCPManagement";
-import { DocumentManagement } from "@/components/DocumentManagement";
+import { DocumentManagement } from "@/components/DocumentManagement/index";
 import { ModelManagement } from "@/components/ModelManagement";
 import { useToast } from "@/hooks/use-toast";
 
