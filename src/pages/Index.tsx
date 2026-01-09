@@ -108,13 +108,13 @@ const Index = () => {
   const handleMCPSelect = (selections: MCPSelection[]) => {
     setSelectedMCPs(selections);
     if (selections.length > 0) {
-      const names = selections.map(id => {
-        const provider = mcpProviders.find(p => p.id === id);
-        return provider?.name || id;
+      const summary = selections.map(s => {
+        const provider = mcpProviders.find(p => p.id === s.providerId);
+        return `${provider?.name || s.providerId} (${s.regionIds.length}个区域)`;
       }).join(", ");
       toast({
         title: "MCP 已选择",
-        description: names,
+        description: summary,
       });
     }
   };

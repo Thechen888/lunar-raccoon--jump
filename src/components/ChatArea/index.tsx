@@ -19,10 +19,11 @@ interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
-  mcpInfo?: MCPSelection[];
+  mcpInfo?: string[];
+  documents?: string[];
   docInfo?: {
-    provider: string;
-    name: string;
+    vectorDb: string;
+    complexity: string;
     dbAddress: string;
   };
   chatMode?: ChatMode;
@@ -61,7 +62,7 @@ interface MCPProvider {
 interface ChatAreaProps {
   selectedMCPs: MCPSelection[];
   selectedDoc: DocumentSelection | null;
-  onMCPSelect: (selections: MCPSelection[]) => void;
+  onMCPSelect: (selection: MCPSelection[]) => void;
   onDocSelect: (selection: DocumentSelection | null) => void;
   mcpProviders: MCPProvider[];
 }
@@ -112,7 +113,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
         timestamp: new Date(),
         chatMode: chatConfig.mode,
         modelInfo: availableModels.find(m => m.id === chatConfig.modelId),
-        mcpInfo: selectedMCPs
+        mcpInfo: selectedMCPs.map(s => `${s.providerId}-${s.regionIds.join('+')}-${s.complexityId}`)
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -127,7 +128,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
           timestamp: new Date(),
           chatMode: chatConfig.mode,
           modelInfo: model,
-          mcpInfo: selectedMCPs
+          mcpInfo: selectedMCPs.map(s => `${s.providerId}-${s.regionIds.join('+')}-${s.complexityId}`)
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -147,7 +148,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
         chatMode: chatConfig.mode,
         modelInfo: availableModels.find(m => m.id === chatConfig.modelId),
         documentCollectionInfo: availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId),
-        mcpInfo: selectedMCPs
+        mcpInfo: selectedMCPs.map(s => `${s.providerId}-${s.regionIds.join('+')}-${s.complexityId}`)
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -164,7 +165,7 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
           chatMode: chatConfig.mode,
           modelInfo: model,
           documentCollectionInfo: collection,
-          mcpInfo: selectedMCPs
+          mcpInfo: selectedMCPs.map(s => `${s.providerId}-${s.regionIds.join('+')}-${s.complexityId}`)
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -271,11 +272,16 @@ export const ChatArea = ({ selectedMCPs, selectedDoc, onMCPSelect, onDocSelect, 
                   )}
                 </>
               )}
-              {selectedMCPs.map((mcpId) => (
-                <Badge key={mcpId} variant="outline" className="text-xs">
-                  {getProviderName(mcpId)}
-                </Badge>
-              ))}
+              {selectedMCPs.map((selection) => {
+                const provider = mcpProviders.find(p => p.id === selection.providerId);
+                const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
+                const selectedComplexity = provider?.complexityLevels?.find(c => c.id === selection.complexityId);
+                return (
+                  <Badge key={selection.providerId} variant="outline" className="text-xs">
+                    {provider?.name} {selectedRegions.map(r => r.name).join('+')} {selectedComplexity?.name}
+                  </Badge>
+                );
+              })}
               {selectedDoc && (
                 <Badge variant="secondary" className="text-xs">
                   {selectedDoc.name}
