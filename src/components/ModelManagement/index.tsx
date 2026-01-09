@@ -15,13 +15,10 @@ interface ModelConfig {
   endpoint: string;
   apiKey: string;
   modelName: string;
-  modelVersion: string;
   status: "active" | "inactive" | "error";
   maxTokens: number;
   temperature: number;
   topP: number;
-  frequencyPenalty: number;
-  presencePenalty: number;
   description: string;
   lastTested: string;
   prompts?: Array<{
@@ -40,13 +37,10 @@ export const ModelManagement = () => {
       endpoint: "https://api.openai.com/v1",
       apiKey: "sk-****************",
       modelName: "gpt-4",
-      modelVersion: "latest",
       status: "active",
       maxTokens: 8000,
       temperature: 0.7,
       topP: 1.0,
-      frequencyPenalty: 0,
-      presencePenalty: 0,
       description: "最先进的语言模型",
       lastTested: "2024-01-15",
       prompts: [
@@ -64,13 +58,10 @@ export const ModelManagement = () => {
       endpoint: "https://api.openai.com/v1",
       apiKey: "sk-****************",
       modelName: "gpt-3.5-turbo",
-      modelVersion: "1106",
       status: "active",
       maxTokens: 4096,
       temperature: 0.7,
       topP: 1.0,
-      frequencyPenalty: 0,
-      presencePenalty: 0,
       description: "快速响应的模型",
       lastTested: "2024-01-15",
       prompts: []
@@ -108,13 +99,10 @@ export const ModelManagement = () => {
       endpoint: data.endpoint || "",
       apiKey: data.apiKey || "",
       modelName: data.modelName || "",
-      modelVersion: data.modelVersion || "latest",
       status: "inactive",
       maxTokens: data.maxTokens || 4096,
       temperature: data.temperature || 0.7,
       topP: data.topP || 1.0,
-      frequencyPenalty: data.frequencyPenalty || 0,
-      presencePenalty: data.presencePenalty || 0,
       description: data.description || "",
       lastTested: "未测试",
       prompts: []
