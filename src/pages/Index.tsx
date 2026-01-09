@@ -94,14 +94,48 @@ const Index = () => {
     }
   ]);
 
-  // 将MCP服务转换为MCPSelector所需的格式
+  // 将MCP服务转换为MCPSelector所需的格式（包含层级信息）
   const mcpProviders = useMemo(() => {
-    return mcpServices.map(service => ({
-      id: service.id,
-      name: service.name,
-      description: service.description
-    }));
-  }, [mcpServices]);
+    return [
+      {
+        id: "pangu",
+        name: "PANGU",
+        description: "华为盘古大模型服务",
+        layer: 3,
+        regions: [
+          { id: "pangu-china", name: "中国" },
+          { id: "pangu-europe", name: "欧洲" },
+          { id: "pangu-usa", name: "美国" }
+        ],
+        complexityLevels: [
+          { id: "simple", name: "精简", description: "快速响应模式" },
+          { id: "normal", name: "一般", description: "标准模式" },
+          { id: "complex", name: "复杂", description: "深度分析模式" },
+          { id: "complete", name: "完全", description: "全能模式" }
+        ]
+      },
+      {
+        id: "hub",
+        name: "HUB",
+        description: "EcoHub生态系统服务",
+        layer: 2,
+        regions: [
+          { id: "hub-china", name: "中国" },
+          { id: "hub-europe", name: "欧洲" },
+          { id: "hub-usa", name: "美国" }
+        ],
+        complexityLevels: []
+      },
+      {
+        id: "simple",
+        name: "Simple Provider",
+        description: "简单服务提供商",
+        layer: 1,
+        regions: [],
+        complexityLevels: []
+      }
+    ];
+  }, []);
 
   const { toast } = useToast();
 
@@ -110,7 +144,9 @@ const Index = () => {
     if (selections.length > 0) {
       const summary = selections.map(s => {
         const provider = mcpProviders.find(p => p.id === s.providerId);
-        return `${provider?.name || s.providerId} (${s.regionIds.length}个区域)`;
+        const regions = provider?.regions?.filter(r => s.regionIds.includes(r.id)).map(r => r.name) || [];
+        const complexity = provider?.complexityLevels?.find(c => c.id === s.complexityId)?.name || "";
+        return `${provider?.name || s.providerId} ${regions.length > 0 ? `(${regions.join(", ")})` : ""} ${complexity ? `-${complexity}` : ""}`;
       }).join(", ");
       toast({
         title: "MCP 已选择",
