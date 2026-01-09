@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X, ChevronDown, ChevronRight, MessageSquare, Download, Eye, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface QAItem {
@@ -31,6 +32,8 @@ interface OriginalDocument {
   status: "processed" | "processing" | "error";
   tags: string[];
   collectionId: string;
+  conversionStatus: "none" | "processing" | "completed"; // markdown转换状态
+  markdownContent?: string; // 转换后的markdown内容
 }
 
 interface DocumentCollection {
@@ -111,7 +114,51 @@ export const DocumentManagement = () => {
       uploadDate: "2024-01-15",
       status: "processed",
       tags: ["技术", "React"],
-      collectionId: "tech-docs-cn"
+      collectionId: "tech-docs-cn",
+      conversionStatus: "completed",
+      markdownContent: `# React开发指南
+
+## 简介
+React 是一个用于构建用户界面的 JavaScript 库。
+
+## 主要特性
+
+### 1. 组件化
+React 将 UI 拆分为独立、可复用的组件。
+
+\`\`\`jsx
+function Welcome(props) {
+  return <h1>Hello, {props.name}</h1>;
+}
+\`\`\`
+
+### 2. 声明式
+React 使创建交互式 UI 变得轻而易举。
+
+### 3. 虚拟DOM
+React 使用虚拟DOM来提高性能。
+
+## Hooks
+Hooks 是 React 16.8 新增的特性。
+
+### useState
+用于在函数组件中添加状态。
+
+\`\`\`jsx
+const [count, setCount] = useState(0);
+\`\`\`
+
+### useEffect
+用于处理副作用操作。
+
+\`\`\`jsx
+useEffect(() => {
+  document.title = \`You clicked \${count} times\`;
+}, [count]);
+\`\`\`
+
+## 总结
+React 提供了一种声明式的、高效的方式来构建用户界面。`
     },
     {
       id: "2",
@@ -121,7 +168,35 @@ export const DocumentManagement = () => {
       uploadDate: "2024-01-14",
       status: "processed",
       tags: ["业务", "产品"],
-      collectionId: "business-docs-cn"
+      collectionId: "business-docs-cn",
+      conversionStatus: "completed",
+      markdownContent: `# 产品需求规格说明书
+
+## 1. 概述
+本文档描述了产品的主要需求和规格。
+
+## 2. 功能需求
+
+### 2.1 用户管理
+- 用户注册
+- 用户登录
+- 密码重置
+
+### 2.2 产品管理
+- 产品列表
+- 产品详情
+- 产品搜索
+
+## 3. 非功能需求
+
+### 3.1 性能
+- 响应时间 < 2秒
+- 支持 1000 并发用户
+
+### 3.2 安全性
+- 数据加密
+- 访问控制
+- 审计日志`
     },
     {
       id: "3",
@@ -131,7 +206,8 @@ export const DocumentManagement = () => {
       uploadDate: "2024-01-10",
       status: "processed",
       tags: ["法律", "合规"],
-      collectionId: "legal-docs-eu"
+      collectionId: "legal-docs-eu",
+      conversionStatus: "processing"
     },
     {
       id: "4",
@@ -141,7 +217,8 @@ export const DocumentManagement = () => {
       uploadDate: "2024-01-15",
       status: "processing",
       tags: ["技术", "架构"],
-      collectionId: "tech-docs-cn"
+      collectionId: "tech-docs-cn",
+      conversionStatus: "none"
     }
   ]);
 
@@ -220,6 +297,9 @@ export const DocumentManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [processing, setProcessing] = useState(false);
+
+  // 查看Markdown对话框
+  const [viewMarkdownDoc, setViewMarkdownDoc] = useState<OriginalDocument | null>(null);
 
   // QA管理状态
   const [qaSearchTerm, setQaSearchTerm] = useState("");
@@ -338,7 +418,8 @@ export const DocumentManagement = () => {
         uploadDate: new Date().toISOString().split('T')[0],
         status: "processed" as "processed" | "processing" | "error",
         tags: uploadFormData.tags,
-        collectionId: uploadFormData.collectionId
+        collectionId: uploadFormData.collectionId,
+        conversionStatus: "none" as "none" | "processing" | "completed"
       }));
       
       setDocuments([...documents, ...newDocuments]);
@@ -383,10 +464,41 @@ export const DocumentManagement = () => {
     }, 3000);
   };
 
+  const handleDownloadDocument = (doc: OriginalDocument) => {
+    // 模拟下载文件
+    toast.success(`正在下载: ${doc.name}`);
+  };
+
+  const handleViewMarkdown = (doc: OriginalDocument) => {
+    if (doc.conversionStatus !== "completed") {
+      toast.error("文档尚未转换为Markdown");
+      return;
+    }
+    setViewMarkdownDoc(doc);
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
     return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  };
+
+  const getConversionStatusBadge = (status: "none" | "processing" | "completed") => {
+    const variants = {
+      none: "outline",
+      processing: "secondary",
+      completed: "default"
+    } as const;
+    const labels = {
+      none: "未转换",
+      processing: "转换中",
+      completed: "已转换"
+    };
+    return (
+      <Badge variant={variants[status]} className="text-xs">
+        {labels[status]}
+      </Badge>
+    );
   };
 
   // QA编辑功能
@@ -782,6 +894,10 @@ export const DocumentManagement = () => {
                           <div className="flex items-center space-x-2 mb-2">
                             <File className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">{doc.name}</span>
+                            <Badge variant={doc.status === "processed" ? "default" : doc.status === "error" ? "destructive" : "secondary"} className="text-xs">
+                              {doc.status === "processed" ? "已处理" : doc.status === "error" ? "错误" : "处理中"}
+                            </Badge>
+                            {getConversionStatusBadge(doc.conversionStatus)}
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
                             <span>类型: {doc.type}</span>
@@ -797,13 +913,31 @@ export const DocumentManagement = () => {
                             ))}
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteDocument(doc.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewMarkdown(doc)}
+                            disabled={doc.conversionStatus !== "completed"}
+                            title={doc.conversionStatus === "completed" ? "查看Markdown" : "文档尚未转换为Markdown"}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteDocument(doc.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -1025,6 +1159,49 @@ export const DocumentManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* 查看Markdown对话框 */}
+      <Dialog open={viewMarkdownDoc !== null} onOpenChange={(open) => !open && setViewMarkdownDoc(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="flex items-center justify-between">
+              <span>{viewMarkdownDoc?.name} - Markdown预览</span>
+              {getConversionStatusBadge(viewMarkdownDoc?.conversionStatus || "none")}
+            </DialogTitle>
+            <DialogDescription>
+              查看文档转换后的Markdown内容
+            </DialogDescription>
+          </DialogHeader>
+          {viewMarkdownDoc?.markdownContent ? (
+            <ScrollArea className="flex-1 pr-4">
+              <pre className="text-sm whitespace-pre-wrap font-mono bg-muted p-4 rounded-md">
+                {viewMarkdownDoc.markdownContent}
+              </pre>
+            </ScrollArea>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  {viewMarkdownDoc?.conversionStatus === "processing" ? "文档正在转换为Markdown..." : "文档尚未转换为Markdown"}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex-shrink-0 pt-4">
+            <Button variant="outline" onClick={() => setViewMarkdownDoc(null)}>
+              关闭
+            </Button>
+            <Button onClick={() => {
+              if (viewMarkdownDoc?.markdownContent) {
+                toast.success("Markdown已复制到剪贴板");
+              }
+            }}>
+              复制Markdown
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 编辑QA对话框 */}
       <Dialog open={isEditQaDialogOpen} onOpenChange={setIsEditQaDialogOpen}>
