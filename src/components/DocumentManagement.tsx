@@ -942,12 +942,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     管理由原文档自动生成的问答对
                   </CardDescription>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">总计: {qaStats.total}</Badge>
-                  <Badge variant="default" className="text-xs">启用: {qaStats.active}</Badge>
-                  <Badge variant="secondary" className="text-xs">草稿: {qaStats.draft}</Badge>
-                  <Badge variant="outline" className="text-xs">归档: {qaStats.archived}</Badge>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
