@@ -4,13 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X } from "lucide-react";
+import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+
+interface QAItem {
+  id: string;
+  question: string;
+  answer: string;
+  status: "active" | "draft" | "archived";
+  documentId: string;
+  documentName: string;
+  createdAt: string;
+  tags: string[];
+}
 
 interface OriginalDocument {
   id: string;
@@ -36,6 +46,15 @@ interface DocumentCollection {
 }
 
 export const DocumentManagement = () => {
+  const [activeTab, setActiveTab] = useState("collections");
+  const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<DocumentCollection | null>(null);
+  const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string }>({
+    name: "",
+    type: "",
+    description: ""
+  });
+
   const [collections, setCollections] = useState<DocumentCollection[]>([
     {
       id: "tech-docs-cn",
@@ -126,9 +145,71 @@ export const DocumentManagement = () => {
     }
   ]);
 
-  const [activeTab, setActiveTab] = useState("collections");
+  // QA数据
+  const [qaItems, setQaItems] = useState<QAItem[]>([
+    {
+      id: "qa-1",
+      question: "什么是React Hooks？",
+      answer: "React Hooks 是 React 16.8 新增的特性，它可以让你在不编写 class 的情况下使用 state 以及其他的 React 特性。",
+      status: "active",
+      documentId: "1",
+      documentName: "React开发指南.pdf",
+      createdAt: "2024-01-15",
+      tags: ["React", "Hooks"]
+    },
+    {
+      id: "qa-2",
+      question: "useEffect 的作用是什么？",
+      answer: "useEffect Hook 用于处理副作用操作，如数据获取、订阅、手动修改 DOM 等。",
+      status: "active",
+      documentId: "1",
+      documentName: "React开发指南.pdf",
+      createdAt: "2024-01-15",
+      tags: ["React", "Hooks", "useEffect"]
+    },
+    {
+      id: "qa-3",
+      question: "GDPR的主要要求是什么？",
+      answer: "GDPR主要要求包括：数据主体的知情同意权、数据可携带权、被遗忘权等。",
+      status: "active",
+      documentId: "3",
+      documentName: "GDPR合规指南.pdf",
+      createdAt: "2024-01-10",
+      tags: ["GDPR", "合规"]
+    },
+    {
+      id: "qa-4",
+      question: "产品需求文档应该包含哪些内容？",
+      answer: "产品需求文档应包含产品概述、功能需求、非功能需求、用户场景、验收标准等。",
+      status: "draft",
+      documentId: "2",
+      documentName: "产品需求规格说明书.docx",
+      createdAt: "2024-01-14",
+      tags: ["产品", "需求"]
+    },
+    {
+      id: "qa-5",
+      question: "React组件的生命周期有哪些？",
+      answer: "React组件生命周期包括：挂载阶段（constructor、componentDidMount）、更新阶段（componentDidUpdate）、卸载阶段（componentWillUnmount）。",
+      status: "active",
+      documentId: "1",
+      documentName: "React开发指南.pdf",
+      createdAt: "2024-01-15",
+      tags: ["React", "生命周期"]
+    },
+    {
+      id: "qa-6",
+      question: "数据处理的安全要求？",
+      answer: "数据处理需要遵循最小化原则、加密存储、访问控制等安全要求。",
+      status: "archived",
+      documentId: "3",
+      documentName: "GDPR合规指南.pdf",
+      createdAt: "2024-01-10",
+      tags: ["安全", "数据处理"]
+    }
+  ]);
+
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
-  const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
     collectionId: "",
@@ -136,15 +217,23 @@ export const DocumentManagement = () => {
     description: ""
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [editingCollection, setEditingCollection] = useState<DocumentCollection | null>(null);
-  const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string }>({
-    name: "",
-    type: "",
-    description: ""
-  });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [processing, setProcessing] = useState(false);
+
+  // QA管理状态
+  const [qaSearchTerm, setQaSearchTerm] = useState("");
+  const [qaStatusFilter, setQaStatusFilter] = useState<"all" | "active" | "draft" | "archived">("all");
+  const [qaDocumentFilter, setQaDocumentFilter] = useState<string>("all");
+  const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
+  const [qaViewMode, setQaViewMode] = useState<"grouped" | "list">("grouped");
+  const [isEditQaDialogOpen, setIsEditQaDialogOpen] = useState(false);
+  const [editingQa, setEditingQa] = useState<QAItem | null>(null);
+  const [qaFormData, setQaFormData] = useState<{ question: string; answer: string; status: "active" | "draft" | "archived" }>({
+    question: "",
+    answer: "",
+    status: "active"
+  });
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -152,6 +241,27 @@ export const DocumentManagement = () => {
     const matchesCollection = !selectedCollection || doc.collectionId === selectedCollection;
     return matchesSearch && matchesType && matchesCollection;
   });
+
+  // 筛选QA
+  const filteredQaItems = qaItems.filter(qa => {
+    const matchesSearch = qa.question.toLowerCase().includes(qaSearchTerm.toLowerCase()) || 
+                         qa.answer.toLowerCase().includes(qaSearchTerm.toLowerCase());
+    const matchesStatus = qaStatusFilter === "all" || qa.status === qaStatusFilter;
+    const matchesDocument = qaDocumentFilter === "all" || qa.documentId === qaDocumentFilter;
+    return matchesSearch && matchesStatus && matchesDocument;
+  });
+
+  // 按文档分组QA
+  const qaByDocument = documents.reduce((acc, doc) => {
+    const docQaItems = filteredQaItems.filter(qa => qa.documentId === doc.id);
+    if (docQaItems.length > 0) {
+      acc[doc.id] = {
+        document: doc,
+        qaItems: docQaItems
+      };
+    }
+    return acc;
+  }, {} as Record<string, { document: OriginalDocument; qaItems: QAItem[] }>);
 
   const handleAddCollection = () => {
     const newCollection: DocumentCollection = {
@@ -279,12 +389,78 @@ export const DocumentManagement = () => {
     return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
+  // QA编辑功能
+  const handleEditQa = (qa: QAItem) => {
+    setEditingQa(qa);
+    setQaFormData({
+      question: qa.question,
+      answer: qa.answer,
+      status: qa.status
+    });
+    setIsEditQaDialogOpen(true);
+  };
+
+  const handleSaveQa = () => {
+    if (editingQa) {
+      setQaItems(qaItems.map(qa => 
+        qa.id === editingQa.id 
+          ? { ...qa, question: qaFormData.question, answer: qaFormData.answer, status: qaFormData.status }
+          : qa
+      ));
+      setIsEditQaDialogOpen(false);
+      setEditingQa(null);
+      toast.success("QA已更新");
+    }
+  };
+
+  const handleDeleteQa = (qaId: string) => {
+    setQaItems(qaItems.filter(qa => qa.id !== qaId));
+    toast.success("QA已删除");
+  };
+
+  const toggleDocumentExpand = (docId: string) => {
+    const newExpanded = new Set(expandedDocuments);
+    if (newExpanded.has(docId)) {
+      newExpanded.delete(docId);
+    } else {
+      newExpanded.add(docId);
+    }
+    setExpandedDocuments(newExpanded);
+  };
+
+  // QA统计
+  const qaStats = {
+    total: qaItems.length,
+    active: qaItems.filter(qa => qa.status === "active").length,
+    draft: qaItems.filter(qa => qa.status === "draft").length,
+    archived: qaItems.filter(qa => qa.status === "archived").length
+  };
+
+  const getStatusBadge = (status: "active" | "draft" | "archived") => {
+    const variants = {
+      active: "default",
+      draft: "secondary",
+      archived: "outline"
+    } as const;
+    const labels = {
+      active: "启用",
+      draft: "草稿",
+      archived: "归档"
+    };
+    return (
+      <Badge variant={variants[status]} className="text-xs">
+        {labels[status]}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="collections">文档集</TabsTrigger>
           <TabsTrigger value="documents">原文档</TabsTrigger>
+          <TabsTrigger value="qa">QA管理</TabsTrigger>
         </TabsList>
 
         {/* Collections Tab */}
@@ -498,7 +674,6 @@ export const DocumentManagement = () => {
                           </div>
                         </div>
 
-                        {/* 已选择的文件列表 */}
                         {selectedFiles.length > 0 && (
                           <div className="border rounded-md p-3">
                             <div className="flex items-center justify-between mb-2">
@@ -598,49 +773,30 @@ export const DocumentManagement = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>文档名称</TableHead>
-                    <TableHead>类型</TableHead>
-                    <TableHead>大小</TableHead>
-                    <TableHead>文档集</TableHead>
-                    <TableHead>上传日期</TableHead>
-                    <TableHead>状态</TableHead>
-                    <TableHead>操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="font-medium">{doc.name}</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {doc.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
+              <div className="space-y-2">
+                {filteredDocuments.map((doc) => (
+                  <Card key={doc.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <File className="h-5 w-5 text-muted-foreground" />
+                            <span className="font-medium">{doc.name}</span>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
+                            <span>类型: {doc.type}</span>
+                            <span>大小: {formatFileSize(doc.size)}</span>
+                            <span>文档集: {collections.find(c => c.id === doc.collectionId)?.name}</span>
+                            <span>上传: {doc.uploadDate}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {doc.tags.map((tag) => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{doc.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {formatFileSize(doc.size)}
-                      </TableCell>
-                      <TableCell>
-                        {collections.find(c => c.id === doc.collectionId)?.name || "未分类"}
-                      </TableCell>
-                      <TableCell>{doc.uploadDate}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={doc.status === "processed" ? "default" : doc.status === "processing" ? "secondary" : "destructive"}
-                        >
-                          {doc.status === "processed" ? "已处理" : doc.status === "processing" ? "处理中" : "错误"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -648,24 +804,291 @@ export const DocumentManagement = () => {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* QA Management Tab */}
+        <TabsContent value="qa" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2">
+                    <MessageSquare className="h-5 w-5" />
+                    <span>QA管理</span>
+                  </CardTitle>
+                  <CardDescription>
+                    管理由原文档自动生成的问答对
+                  </CardDescription>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">总计: {qaStats.total}</Badge>
+                  <Badge variant="default" className="text-xs">启用: {qaStats.active}</Badge>
+                  <Badge variant="secondary" className="text-xs">草稿: {qaStats.draft}</Badge>
+                  <Badge variant="outline" className="text-xs">归档: {qaStats.archived}</Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* 筛选和搜索 */}
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="搜索问答..."
+                    value={qaSearchTerm}
+                    onChange={(e) => setQaSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+                <Select value={qaStatusFilter} onValueChange={(v: any) => setQaStatusFilter(v)}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="状态" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部状态</SelectItem>
+                    <SelectItem value="active">启用</SelectItem>
+                    <SelectItem value="draft">草稿</SelectItem>
+                    <SelectItem value="archived">归档</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={qaDocumentFilter} onValueChange={setQaDocumentFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="文档" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部文档</SelectItem>
+                    {documents.map((doc) => (
+                      <SelectItem key={doc.id} value={doc.id}>{doc.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center border rounded-md p-1">
+                  <Button
+                    variant={qaViewMode === "grouped" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setQaViewMode("grouped")}
+                    className="h-7 px-3 text-xs"
+                  >
+                    按文档分组
+                  </Button>
+                  <Button
+                    variant={qaViewMode === "list" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setQaViewMode("list")}
+                    className="h-7 px-3 text-xs"
+                  >
+                    列表视图
+                  </Button>
+                </div>
+              </div>
+
+              {filteredQaItems.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  暂无QA数据
+                </div>
+              ) : qaViewMode === "grouped" ? (
+                /* 按文档分组视图 */
+                <div className="space-y-4">
+                  {Object.entries(qaByDocument).map(([docId, { document, qaItems: docQaItems }]) => (
+                    <Card key={docId}>
+                      <CardHeader 
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => toggleDocumentExpand(docId)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {expandedDocuments.has(docId) ? (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{document.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {docQaItems.length} 个QA
+                            </Badge>
+                          </div>
+                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                            <span>{document.type}</span>
+                            <span>•</span>
+                            <span>{formatFileSize(document.size)}</span>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      {expandedDocuments.has(docId) && (
+                        <CardContent className="space-y-2">
+                          {docQaItems.map((qa) => (
+                            <Card key={qa.id} className="hover:shadow-md transition-shadow">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <Badge variant="secondary" className="text-xs">问</Badge>
+                                      <span className="font-medium">{qa.question}</span>
+                                      {getStatusBadge(qa.status)}
+                                    </div>
+                                    <div className="flex items-start space-x-2">
+                                      <Badge variant="outline" className="text-xs">答</Badge>
+                                      <p className="text-sm text-muted-foreground">{qa.answer}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2 ml-4">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditQa(qa)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteQa(qa.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {qa.tags.map((tag) => (
+                                    <Badge key={tag} variant="outline" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </CardContent>
+                      )}
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              ) : (
+                /* 列表视图 */
+                <div className="space-y-2">
+                  {filteredQaItems.map((qa) => (
+                    <Card key={qa.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Badge variant="secondary" className="text-xs">问</Badge>
+                              <span className="font-medium">{qa.question}</span>
+                              {getStatusBadge(qa.status)}
+                              <Badge variant="outline" className="text-xs">
+                                {qa.documentName}
+                              </Badge>
+                            </div>
+                            <div className="flex items-start space-x-2 mb-2">
+                              <Badge variant="outline" className="text-xs">答</Badge>
+                              <p className="text-sm text-muted-foreground">{qa.answer}</p>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {qa.tags.map((tag) => (
+                                <Badge key={tag} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 ml-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditQa(qa)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteQa(qa.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* 编辑QA对话框 */}
+      <Dialog open={isEditQaDialogOpen} onOpenChange={setIsEditQaDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>编辑QA</DialogTitle>
+            <DialogDescription>
+              编辑问答对的内容和状态
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>问题</Label>
+              <Input
+                value={qaFormData.question}
+                onChange={(e) => setQaFormData({ ...qaFormData, question: e.target.value })}
+                placeholder="输入问题"
+              />
+            </div>
+            <div>
+              <Label>答案</Label>
+              <Textarea
+                value={qaFormData.answer}
+                onChange={(e) => setQaFormData({ ...qaFormData, answer: e.target.value })}
+                placeholder="输入答案"
+                rows={4}
+              />
+            </div>
+            <div>
+              <Label>状态</Label>
+              <Select
+                value={qaFormData.status}
+                onValueChange={(value: any) => setQaFormData({ ...qaFormData, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="选择状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">启用</SelectItem>
+                  <SelectItem value="draft">草稿</SelectItem>
+                  <SelectItem value="archived">归档</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditQaDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSaveQa}>
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Collection Dialog */}
       <Dialog open={editingCollection !== null} onOpenChange={() => setEditingCollection(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>编辑文档集</DialogTitle>
-            <DialogDescription>
+            <CardDescription>
               编辑文档集的名称、类型和描述
-            </DialogDescription>
+            </CardDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
