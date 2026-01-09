@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Settings, Play, Trash2 } from "lucide-react";
+import { Settings, Play, Trash2, FileText } from "lucide-react";
 
 interface ModelConfig {
   id: string;
@@ -14,6 +14,11 @@ interface ModelConfig {
   maxTokens: number;
   temperature: number;
   description: string;
+  prompts?: Array<{
+    id: string;
+    name: string;
+    content: string;
+  }>;
 }
 
 interface ModelTableProps {
@@ -22,10 +27,11 @@ interface ModelTableProps {
   onEditModel: (model: ModelConfig) => void;
   onTestModel: (modelId: string) => void;
   onDeleteModel: (modelId: string) => void;
+  onConfigPrompts: (model: ModelConfig) => void;
   testingModel: string | null;
 }
 
-export const ModelTable = ({ models, onToggleModel, onEditModel, onTestModel, onDeleteModel, testingModel }: ModelTableProps) => {
+export const ModelTable = ({ models, onToggleModel, onEditModel, onTestModel, onDeleteModel, onConfigPrompts, testingModel }: ModelTableProps) => {
   return (
     <Table>
       <TableHeader>
@@ -60,15 +66,25 @@ export const ModelTable = ({ models, onToggleModel, onEditModel, onTestModel, on
               </Badge>
             </TableCell>
             <TableCell>
-              <span className="text-xs text-muted-foreground">
-                {model.maxTokens} tokens / T: {model.temperature}
-              </span>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground block">
+                  {model.maxTokens} tokens / T: {model.temperature}
+                </span>
+                {model.prompts && model.prompts.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {model.prompts.length} 个提示词
+                  </Badge>
+                )}
+              </div>
             </TableCell>
             <TableCell>
               <div className="flex items-center space-x-2">
                 <Switch checked={model.status === "active"} onCheckedChange={() => onToggleModel(model.id)} />
                 <Button variant="ghost" size="sm" onClick={() => onEditModel(model)}>
                   <Settings className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onConfigPrompts(model)} title="配置提示词">
+                  <FileText className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => onTestModel(model.id)} disabled={testingModel === model.id}>
                   <Play className={`h-4 w-4 ${testingModel === model.id ? "animate-pulse" : ""}`} />

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Trash2, Upload, RefreshCw, Search, Database, File, Edit, X } from "lucide-react";
+import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface OriginalDocument {
@@ -23,15 +23,6 @@ interface OriginalDocument {
   collectionId: string;
 }
 
-interface QAIndex {
-  id: string;
-  question: string;
-  answer: string;
-  collectionId: string;
-  createdAt: string;
-  vectorId: string;
-}
-
 interface DocumentCollection {
   id: string;
   name: string;
@@ -42,7 +33,6 @@ interface DocumentCollection {
   tags: string[];
   vectorIndexStatus: "ready" | "building" | "none";
   documentCount: number;
-  qaCount: number;
 }
 
 export const DocumentManagement = () => {
@@ -56,8 +46,7 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["技术", "开发", "中文"],
       vectorIndexStatus: "ready",
-      documentCount: 156,
-      qaCount: 342
+      documentCount: 156
     },
     {
       id: "business-docs-cn",
@@ -68,8 +57,7 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["业务", "产品", "中文"],
       vectorIndexStatus: "ready",
-      documentCount: 89,
-      qaCount: 156
+      documentCount: 89
     },
     {
       id: "legal-docs-eu",
@@ -80,8 +68,7 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["法律", "合规", "欧洲"],
       vectorIndexStatus: "ready",
-      documentCount: 234,
-      qaCount: 512
+      documentCount: 234
     },
     {
       id: "knowledge-base",
@@ -92,8 +79,7 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["知识", "内部", "综合"],
       vectorIndexStatus: "ready",
-      documentCount: 412,
-      qaCount: 1089
+      documentCount: 412
     }
   ]);
 
@@ -140,25 +126,6 @@ export const DocumentManagement = () => {
     }
   ]);
 
-  const [qaIndexes, setQaIndexes] = useState<QAIndex[]>([
-    {
-      id: "qa-1",
-      question: "如何使用React Hooks？",
-      answer: "React Hooks是React 16.8引入的新特性，让你可以在函数组件中使用状态和其他React特性...",
-      collectionId: "tech-docs-cn",
-      createdAt: "2024-01-15",
-      vectorId: "vec-12345"
-    },
-    {
-      id: "qa-2",
-      question: "GDPR对数据处理有什么要求？",
-      answer: "GDPR要求企业在处理欧盟公民的个人数据时必须遵循一系列原则，包括合法性、公平性、透明度等...",
-      collectionId: "legal-docs-eu",
-      createdAt: "2024-01-10",
-      vectorId: "vec-67890"
-    }
-  ]);
-
   const [activeTab, setActiveTab] = useState("collections");
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] = useState(false);
@@ -177,30 +144,13 @@ export const DocumentManagement = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set());
   const [processing, setProcessing] = useState(false);
-
-  const toggleExpand = (collectionId: string) => {
-    const newExpanded = new Set(expandedCollections);
-    if (newExpanded.has(collectionId)) {
-      newExpanded.delete(collectionId);
-    } else {
-      newExpanded.add(collectionId);
-    }
-    setExpandedCollections(newExpanded);
-  };
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === "all" || doc.type.toLowerCase() === filterType.toLowerCase();
     const matchesCollection = !selectedCollection || doc.collectionId === selectedCollection;
     return matchesSearch && matchesType && matchesCollection;
-  });
-
-  const filteredQaIndexes = qaIndexes.filter(qa => {
-    const matchesSearch = qa.question.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCollection = !selectedCollection || qa.collectionId === selectedCollection;
-    return matchesSearch && matchesCollection;
   });
 
   const handleAddCollection = () => {
@@ -213,8 +163,7 @@ export const DocumentManagement = () => {
       status: "active",
       tags: [],
       vectorIndexStatus: "none",
-      documentCount: 0,
-      qaCount: 0
+      documentCount: 0
     };
     setCollections([...collections, newCollection]);
     setIsAddCollectionDialogOpen(false);
@@ -313,7 +262,6 @@ export const DocumentManagement = () => {
   const handleDeleteCollection = (collectionId: string) => {
     setCollections(collections.filter(c => c.id !== collectionId));
     setDocuments(documents.filter(d => d.collectionId !== collectionId));
-    setQaIndexes(qaIndexes.filter(q => q.collectionId !== collectionId));
     toast.success("文档集已删除");
   };
 
@@ -337,7 +285,6 @@ export const DocumentManagement = () => {
         <TabsList>
           <TabsTrigger value="collections">文档集</TabsTrigger>
           <TabsTrigger value="documents">原文档</TabsTrigger>
-          <TabsTrigger value="qa">QA向量索引</TabsTrigger>
         </TabsList>
 
         {/* Collections Tab */}
@@ -351,7 +298,7 @@ export const DocumentManagement = () => {
                     <span>文档集管理</span>
                   </CardTitle>
                   <CardDescription>
-                    管理文档集，每个文档集包含多个原文档和QA向量索引
+                    管理文档集，每个文档集包含多个原文档
                   </CardDescription>
                 </div>
                 <Dialog open={isAddCollectionDialogOpen} onOpenChange={setIsAddCollectionDialogOpen}>
@@ -365,7 +312,7 @@ export const DocumentManagement = () => {
                     <DialogHeader>
                       <DialogTitle>创建新文档集</DialogTitle>
                       <DialogDescription>
-                        创建一个新的文档集来组织相关文档和QA
+                        创建一个新的文档集来组织相关文档
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -430,13 +377,6 @@ export const DocumentManagement = () => {
                             原文档:
                           </span>
                           <span className="font-medium">{collection.documentCount}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground flex items-center">
-                            <Database className="h-3 w-3 mr-1" />
-                            QA索引:
-                          </span>
-                          <span className="font-medium">{collection.qaCount}</span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">向量索引:</span>
@@ -709,81 +649,6 @@ export const DocumentManagement = () => {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* QA Vector Index Tab */}
-        <TabsContent value="qa" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Database className="h-5 w-5" />
-                    <span>QA向量索引</span>
-                  </CardTitle>
-                  <CardDescription>
-                    管理从文档提取的QA对及其向量索引（后续接入向量数据库）
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="搜索QA..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-                <Select value={selectedCollection || "all"} onValueChange={(v) => setSelectedCollection(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="文档集" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部文档集</SelectItem>
-                    {collections.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>问题</TableHead>
-                    <TableHead>答案</TableHead>
-                    <TableHead>文档集</TableHead>
-                    <TableHead>向量ID</TableHead>
-                    <TableHead>创建时间</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredQaIndexes.map((qa) => (
-                    <TableRow key={qa.id}>
-                      <TableCell className="font-medium max-w-xs truncate">
-                        {qa.question}
-                      </TableCell>
-                      <TableCell className="max-w-md truncate">
-                        {qa.answer}
-                      </TableCell>
-                      <TableCell>
-                        {collections.find(c => c.id === qa.collectionId)?.name || "未分类"}
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
-                          {qa.vectorId}
-                        </code>
-                      </TableCell>
-                      <TableCell>{qa.createdAt}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

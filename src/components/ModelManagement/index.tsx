@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { ModelTable } from "./ModelTable";
 import { ModelForm } from "./ModelForm";
+import { PromptConfigDialog } from "./PromptConfigDialog";
 
 interface ModelConfig {
   id: string;
@@ -23,6 +24,11 @@ interface ModelConfig {
   presencePenalty: number;
   description: string;
   lastTested: string;
+  prompts?: Array<{
+    id: string;
+    name: string;
+    content: string;
+  }>;
 }
 
 export const ModelManagement = () => {
@@ -42,7 +48,14 @@ export const ModelManagement = () => {
       frequencyPenalty: 0,
       presencePenalty: 0,
       description: "最先进的语言模型",
-      lastTested: "2024-01-15"
+      lastTested: "2024-01-15",
+      prompts: [
+        {
+          id: "prompt-1",
+          name: "系统提示词",
+          content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。"
+        }
+      ]
     },
     {
       id: "model-2",
@@ -59,13 +72,15 @@ export const ModelManagement = () => {
       frequencyPenalty: 0,
       presencePenalty: 0,
       description: "快速响应的模型",
-      lastTested: "2024-01-15"
+      lastTested: "2024-01-15",
+      prompts: []
     }
   ]);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<ModelConfig | null>(null);
   const [testingModel, setTestingModel] = useState<string | null>(null);
+  const [promptConfigModel, setPromptConfigModel] = useState<ModelConfig | null>(null);
 
   const handleToggleModel = (modelId: string) => {
     setModels(models.map((model) => (model.id === modelId ? { ...model, status: model.status === "active" ? "inactive" : "active" } : model)));
@@ -101,11 +116,19 @@ export const ModelManagement = () => {
       frequencyPenalty: data.frequencyPenalty || 0,
       presencePenalty: data.presencePenalty || 0,
       description: data.description || "",
-      lastTested: "未测试"
+      lastTested: "未测试",
+      prompts: []
     };
     setModels([...models, newModel]);
     setIsAddDialogOpen(false);
     toast.success("模型已添加");
+  };
+
+  const handleSavePrompts = (modelId: string, prompts: Array<{ id: string; name: string; content: string }>) => {
+    setModels(models.map(model => 
+      model.id === modelId ? { ...model, prompts } : model
+    ));
+    toast.success("提示词配置已保存");
   };
 
   return (
@@ -144,6 +167,7 @@ export const ModelManagement = () => {
             onEditModel={setEditingModel}
             onTestModel={handleTestModel}
             onDeleteModel={handleDeleteModel}
+            onConfigPrompts={setPromptConfigModel}
             testingModel={testingModel}
           />
         </CardContent>
@@ -166,6 +190,13 @@ export const ModelManagement = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      <PromptConfigDialog
+        open={promptConfigModel !== null}
+        onOpenChange={(open) => !open && setPromptConfigModel(null)}
+        model={promptConfigModel}
+        onSave={handleSavePrompts}
+      />
     </div>
   );
 };

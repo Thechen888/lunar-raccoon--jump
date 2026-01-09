@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, FileText, Server, Lock, Cpu } from "lucide-react";
+import { MessageSquare, FileText, Server, Cpu } from "lucide-react";
 import { MCPSelection } from "@/components/MCPSelector";
 import { ChatArea } from "@/components/ChatArea";
 import { UserPermissions } from "@/components/UserPermissions";
@@ -169,12 +169,8 @@ const Index = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Lock className="h-4 w-4" />
                 <span>{user.name}</span>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setActiveTab("permissions")}>
-                权限设置
-              </Button>
             </div>
           </div>
         </div>
