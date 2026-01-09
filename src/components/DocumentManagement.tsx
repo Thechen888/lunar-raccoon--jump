@@ -29,10 +29,11 @@ interface OriginalDocument {
   type: string;
   size: number;
   uploadDate: string;
-  status: "processed" | "processing";
+  status: "processed" | "processing" | "error";
   tags: string[];
   collectionId: string;
-  markdownContent?: string;
+  conversionStatus: "none" | "processing" | "completed"; // markdown转换状态
+  markdownContent?: string; // 转换后的markdown内容
 }
 
 interface DocumentCollection {
@@ -114,6 +115,7 @@ export const DocumentManagement = () => {
       status: "processed",
       tags: ["技术", "React"],
       collectionId: "tech-docs-cn",
+      conversionStatus: "completed",
       markdownContent: `# React开发指南
 
 ## 简介
@@ -167,6 +169,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
       status: "processed",
       tags: ["业务", "产品"],
       collectionId: "business-docs-cn",
+      conversionStatus: "completed",
       markdownContent: `# 产品需求规格说明书
 
 ## 1. 概述
@@ -201,7 +204,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
       type: "PDF",
       size: 5120000,
       uploadDate: "2024-01-10",
-      status: "processing"
+      status: "processed",
+      tags: ["法律", "合规"],
+      collectionId: "legal-docs-eu",
+      conversionStatus: "processing"
     },
     {
       id: "4",
@@ -209,7 +215,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
       type: "PPTX",
       size: 3145728,
       uploadDate: "2024-01-15",
-      status: "processing"
+      status: "processing",
+      tags: ["技术", "架构"],
+      collectionId: "tech-docs-cn",
+      conversionStatus: "none"
     }
   ]);
 
@@ -322,8 +331,8 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     return matchesSearch && matchesStatus && matchesDocument;
   });
 
-  // 按文档分组QA - 添加安全检查
-  const qaByDocument = (documents || []).reduce((acc, doc) => {
+  // 按文档分组QA
+  const qaByDocument = documents.reduce((acc, doc) => {
     const docQaItems = filteredQaItems.filter(qa => qa.documentId === doc.id);
     if (docQaItems.length > 0) {
       acc[doc.id] = {
@@ -407,9 +416,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
         type: file.name.split('.').pop()?.toUpperCase() || "UNKNOWN",
         size: file.size,
         uploadDate: new Date().toISOString().split('T')[0],
-        status: "processing" as "processed" | "processing",
+        status: "processed" as "processed" | "processing" | "error",
         tags: uploadFormData.tags,
-        collectionId: uploadFormData.collectionId
+        collectionId: uploadFormData.collectionId,
+        conversionStatus: "none" as "none" | "processing" | "completed"
       }));
       
       setDocuments([...documents, ...newDocuments]);
@@ -446,13 +456,12 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     toast.success("文档集已删除");
   };
 
-  // 从API同步
-  const handleSyncFromAPI = () => {
+  const handleReindex = () => {
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);
-      toast.success("数据已从API同步");
-    }, 2000);
+      toast.success("文档重新索引完成");
+    }, 3000);
   };
 
   const handleDownloadDocument = (doc: OriginalDocument) => {
@@ -461,7 +470,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
   };
 
   const handleViewMarkdown = (doc: OriginalDocument) => {
-    if (doc.status !== "processed") {
+    if (doc.conversionStatus !== "completed") {
       toast.error("文档尚未转换为Markdown");
       return;
     }
@@ -472,6 +481,24 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
     return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  };
+
+  const getConversionStatusBadge = (status: "none" | "processing" | "completed") => {
+    const variants = {
+      none: "outline",
+      processing: "secondary",
+      completed: "default"
+    } as const;
+    const labels = {
+      none: "未转换",
+      processing: "转换中",
+      completed: "已转换"
+    };
+    return (
+      <Badge variant={variants[status]} className="text-xs">
+        {labels[status]}
+      </Badge>
+    );
   };
 
   // QA编辑功能
@@ -537,22 +564,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
         {labels[status]}
       </Badge>
     );
-  };
-
-  const getDocumentStatusBadge = (status: "processed" | "processing") => {
-    if (status === "processed") {
-      return (
-        <Badge variant="default" className="text-xs">
-          已处理
-        </Badge>
-      );
-    } else {
-      return (
-        <Badge variant="secondary" className="text-xs">
-          处理中
-        </Badge>
-      );
-    }
   };
 
   return (
@@ -709,9 +720,9 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" onClick={handleSyncFromAPI} disabled={processing}>
+                  <Button variant="outline" onClick={handleReindex} disabled={processing}>
                     <RefreshCw className={`h-4 w-4 mr-2 ${processing ? "animate-spin" : ""}`} />
-                    从API同步
+                    重新索引
                   </Button>
                   <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                     <DialogTrigger asChild>
@@ -883,7 +894,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           <div className="flex items-center space-x-2 mb-2">
                             <File className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">{doc.name}</span>
-                            {getDocumentStatusBadge(doc.status)}
+                            <Badge variant={doc.status === "processed" ? "default" : doc.status === "error" ? "destructive" : "secondary"} className="text-xs">
+                              {doc.status === "processed" ? "已处理" : doc.status === "error" ? "错误" : "处理中"}
+                            </Badge>
+                            {getConversionStatusBadge(doc.conversionStatus)}
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
                             <span>类型: {doc.type}</span>
@@ -911,8 +925,8 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             variant="outline"
                             size="sm"
                             onClick={() => handleViewMarkdown(doc)}
-                            disabled={doc.status !== "processed"}
-                            title={doc.status === "processed" ? "查看Markdown" : "文档正在转换为Markdown"}
+                            disabled={doc.conversionStatus !== "completed"}
+                            title={doc.conversionStatus === "completed" ? "查看Markdown" : "文档尚未转换为Markdown"}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -948,10 +962,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" onClick={handleSyncFromAPI} disabled={processing}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${processing ? "animate-spin" : ""}`} />
-                    从API同步
-                  </Button>
                   <Badge variant="outline" className="text-xs">总计: {qaStats.total}</Badge>
                   <Badge variant="default" className="text-xs">启用: {qaStats.active}</Badge>
                   <Badge variant="secondary" className="text-xs">草稿: {qaStats.draft}</Badge>
@@ -988,7 +998,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部文档</SelectItem>
-                    {(documents || []).map((doc) => (
+                    {documents.map((doc) => (
                       <SelectItem key={doc.id} value={doc.id}>{doc.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -1156,7 +1166,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center justify-between">
               <span>{viewMarkdownDoc?.name} - Markdown预览</span>
-              {getDocumentStatusBadge(viewMarkdownDoc?.status || "processing")}
+              {getConversionStatusBadge(viewMarkdownDoc?.conversionStatus || "none")}
             </DialogTitle>
             <DialogDescription>
               查看文档转换后的Markdown内容
@@ -1173,7 +1183,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
               <div className="text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  文档正在转换为Markdown...
+                  {viewMarkdownDoc?.conversionStatus === "processing" ? "文档正在转换为Markdown..." : "文档尚未转换为Markdown"}
                 </p>
               </div>
             </div>
@@ -1233,7 +1243,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   <SelectItem value="active">启用</SelectItem>
                   <SelectItem value="draft">草稿</SelectItem>
                   <SelectItem value="archived">归档</SelectItem>
-                  </SelectContent>
+                </SelectContent>
               </Select>
             </div>
           </div>
