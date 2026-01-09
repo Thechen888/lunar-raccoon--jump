@@ -988,7 +988,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部文档</SelectItem>
-                    {documents.map((doc) => (
+                    {documents && documents.map((doc) => (
                       <SelectItem key={doc.id} value={doc.id}>{doc.name}</SelectItem>
                     ))}
                   </SelectContent>
