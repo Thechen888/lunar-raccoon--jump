@@ -323,7 +323,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
   });
 
   // 按文档分组QA
-  const qaByDocument = documents.reduce((acc, doc) => {
+  const qaByDocument = (documents || []).reduce((acc, doc) => {
     const docQaItems = filteredQaItems.filter(qa => qa.documentId === doc.id);
     if (docQaItems.length > 0) {
       acc[doc.id] = {
@@ -988,7 +988,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部文档</SelectItem>
-                    {documents && documents.map((doc) => (
+                    {(documents || []).map((doc) => (
                       <SelectItem key={doc.id} value={doc.id}>{doc.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -1233,7 +1233,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   <SelectItem value="active">启用</SelectItem>
                   <SelectItem value="draft">草稿</SelectItem>
                   <SelectItem value="archived">归档</SelectItem>
-                </SelectContent>
+                  </SelectContent>
               </Select>
             </div>
           </div>
