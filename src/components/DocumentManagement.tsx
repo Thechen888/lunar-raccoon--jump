@@ -309,7 +309,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
   const [qaViewMode, setQaViewMode] = useState<"grouped" | "list">("grouped");
   const [isEditQaDialogOpen, setIsEditQaDialogOpen] = useState(false);
   const [editingQa, setEditingQa] = useState<QAItem | null>(null);
-  const [qaFormData, setQaFormData] = useState<{ question: string; answer: string; status: "active" | "draft" | "archived" }>({
+  const [qaFormData, setQaFormData] = useState<{ question: string; answer: string; status: "active" | "inactive" }>({
     question: "",
     answer: "",
     status: "active"
@@ -489,7 +489,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     setQaFormData({
       question: qa.question,
       answer: qa.answer,
-      status: qa.status
+      status: qa.status === "active" ? "active" : "inactive"
     });
     setIsEditQaDialogOpen(true);
   };
@@ -498,7 +498,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     if (editingQa) {
       setQaItems(qaItems.map(qa => 
         qa.id === editingQa.id 
-          ? { ...qa, question: qaFormData.question, answer: qaFormData.answer, status: qaFormData.status }
+          ? { ...qa, question: qaFormData.question, answer: qaFormData.answer, status: qaFormData.status as "active" | "draft" | "archived" }
           : qa
       ));
       setIsEditQaDialogOpen(false);
@@ -1214,15 +1214,14 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
               <Label>状态</Label>
               <Select
                 value={qaFormData.status}
-                onValueChange={(value: any) => setQaFormData({ ...qaFormData, status: value })}
+                onValueChange={(value: "active" | "inactive") => setQaFormData({ ...qaFormData, status: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择状态" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">启用</SelectItem>
-                  <SelectItem value="draft">草稿</SelectItem>
-                  <SelectItem value="archived">归档</SelectItem>
+                  <SelectItem value="inactive">禁用</SelectItem>
                 </SelectContent>
               </Select>
             </div>
