@@ -184,17 +184,21 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
           return (
             <div key={provider.id} className="border rounded-lg overflow-hidden">
               {/* 第一层：服务提供商 */}
-              <div className="p-3 hover:bg-muted/50">
+              <div
+                className={`p-3 cursor-pointer transition-colors ${
+                  providerSelected ? "bg-primary/5" : "hover:bg-muted/50"
+                }`}
+                onClick={(e) => {
+                  handleToggleProvider(provider.id, e);
+                }}
+              >
                 <div className="flex items-center justify-between">
                   {/* 左侧：checkbox和名称 */}
                   <div className="flex items-center space-x-3 flex-1">
                     {provider.layer === 1 && (
                       <Checkbox 
                         checked={providerSelected}
-                        onCheckedChange={() => {
-                          const event = { stopPropagation: () => {} } as React.MouseEvent;
-                          handleToggleProvider(provider.id, event);
-                        }}
+                        onClick={(e) => e.stopPropagation()}
                         className="mt-0.5"
                       />
                     )}
@@ -247,9 +251,6 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               checked={regionSelected}
-                              onCheckedChange={(checked) => {
-                                handleToggleRegion(provider.id, region.id);
-                              }}
                               onClick={(e) => e.stopPropagation()}
                               className="mt-0.5"
                             />
@@ -283,9 +284,6 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               checked={levelSelected}
-                              onCheckedChange={(checked) => {
-                                handleToggleComplexity(provider.id, level.id);
-                              }}
                               onClick={(e) => e.stopPropagation()}
                               className="mt-0.5"
                             />
