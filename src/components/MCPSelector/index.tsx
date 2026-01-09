@@ -81,10 +81,9 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
     const provider = providers.find(p => p.id === providerId);
     if (!provider) return;
 
-    const newSelections = selectedMCPs.filter(s => s.providerId !== providerId);
-    
     // 一层：直接选中/取消
     if (provider.layer === 1) {
+      const newSelections = selectedMCPs.filter(s => s.providerId !== providerId);
       if (!isProviderSelected(providerId)) {
         newSelections.push({
           providerId,
@@ -92,46 +91,63 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
           complexityId: ""
         });
       }
+      onSelect(newSelections);
     } else {
-      // 二三层：创建选择项但不标记为选中
-      if (!selectedMCPs.some(s => s.providerId === providerId)) {
-        newSelections.push({
-          providerId,
-          regionIds: [],
-          complexityId: ""
-        });
-      }
-    }
-    
-    onSelect(newSelections);
-    
-    // 选中时自动展开
-    if (provider.layer > 1) {
+      // 二三层：只展开/折叠，不改变选择状态
       toggleProvider(providerId, event);
     }
   };
 
   // 处理区域选择（多选）
   const handleToggleRegion = (providerId: string, regionId: string) => {
-    const newSelections = selectedMCPs.map(s => {
-      if (s.providerId !== providerId) return s;
-      
-      const newRegionIds = s.regionIds.includes(regionId)
-        ? s.regionIds.filter(id => id !== regionId)
-        : [...s.regionIds, regionId];
-      
-      return { ...s, regionIds: newRegionIds };
-    });
+    const existingSelection = selectedMCPs.find(s => s.providerId === providerId);
+    
+    let newSelections;
+    if (existingSelection) {
+      // 已有选择，更新regionIds
+      newSelections = selectedMCPs.map(s => {
+        if (s.providerId !== providerId) return s;
+        
+        const newRegionIds = s.regionIds.includes(regionId)
+          ? s.regionIds.filter(id => id !== regionId)
+          : [...s.regionIds, regionId];
+        
+        return { ...s, regionIds: newRegionIds };
+      });
+    } else {
+      // 没有选择，创建新选择
+      newSelections = [...selectedMCPs, {
+        providerId,
+        regionIds: [regionId],
+        complexityId: ""
+      }];
+    }
     
     onSelect(newSelections);
   };
 
   // 处理复杂度选择（单选）
   const handleToggleComplexity = (providerId: string, complexityId: string) => {
-    const newSelections = selectedMCPs.map(s => {
-      if (s.providerId !== providerId) return s;
-      return { ...s, complexityId: complexityId === s.complexityId ? "" : complexityId };
-    });
+    const existingSelection = selectedMCPs.find(s => s.providerId === providerId);
+    
+    let newSelections;
+    if (existingSelection) {
+      // 已有选择，更新complexityId
+      newSelections = selectedMCPs.map(s => {
+        if (s.providerId !== providerId) return s;
+        return { 
+          ...s, 
+          complexityId: complexityId === s.complexityId ? "" : complexityId 
+        };
+      });
+    } else {
+      // 没有选择，创建新选择
+      newSelections = [...selectedMCPs, {
+        providerId,
+        regionIds: [],
+        complexityId: complexityId
+      }];
+    }
     
     onSelect(newSelections);
   };
