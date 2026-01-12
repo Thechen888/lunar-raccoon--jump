@@ -1,3 +1,50 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Settings, Trash2, Globe, Code } from "lucide-react";
+import { ToolList } from "./ToolList";
+import { PromptList } from "./PromptList";
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  method: string;
+  path: string;
+  enabled: boolean;
+  details?: string;
+  projectId?: string;
+  [key: string]: any;
+}
+
+export interface Prompt {
+  id: string;
+  name: string;
+  content: string;
+}
+
+export interface MCPService {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  headers?: string;
+  status: "active" | "inactive";
+  createdAt: string;
+  tools?: Tool[];
+  prompts?: Prompt[];
+}
+
+interface MCPDetailDialogProps {
+  service: MCPService;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onEdit: (service: MCPService) => void;
+  onDelete: (serviceId: string) => void;
+  onToggleTool: (toolId: string) => void;
+}
+
 export const MCPDetailDialog = ({ 
   service, 
   open, 
