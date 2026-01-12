@@ -427,17 +427,20 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                   }}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenConfig(provider.id, "provider");
-                    }}
-                    title="配置服务"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
+                  {/* 只有一层结构才在最外层显示配置按钮 */}
+                  {provider.layer === 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenConfig(provider.id, "provider");
+                      }}
+                      title="配置服务"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -470,6 +473,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                           )}
                         </div>
                         <div className="flex items-center space-x-2">
+                          {/* 二层结构在区域显示配置按钮 */}
                           {provider.layer === 2 && (
                             <Button
                               variant="ghost"
@@ -565,14 +569,17 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                                   >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleOpenConfig(provider.id, "complexity", region.id, complexity.id)}
-                                    title="配置服务"
-                                  >
-                                    <Settings className="h-4 w-4" />
-                                  </Button>
+                                  {/* 三层结构在复杂度级别显示配置按钮 */}
+                                  {provider.layer === 3 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleOpenConfig(provider.id, "complexity", region.id, complexity.id)}
+                                      title="配置服务"
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </div>
