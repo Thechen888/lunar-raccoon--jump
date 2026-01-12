@@ -12,7 +12,6 @@ interface ModelConfig {
   endpoint: string;
   apiKey: string;
   modelName: string;
-  modelVersion: string;
   maxTokens: number;
   temperature: number;
   topP: number;
@@ -34,7 +33,6 @@ export const ModelForm = ({ initialData, onSave }: ModelFormProps) => {
       endpoint: "",
       apiKey: "",
       modelName: "",
-      modelVersion: "latest",
       maxTokens: 4096,
       temperature: 0.7,
       topP: 1.0,
@@ -66,10 +64,6 @@ export const ModelForm = ({ initialData, onSave }: ModelFormProps) => {
         <div>
           <Label>模型名称</Label>
           <Input value={formData.modelName} onChange={(e) => setFormData({ ...formData, modelName: e.target.value })} placeholder="例如：gpt-4" />
-        </div>
-        <div>
-          <Label>模型版本</Label>
-          <Input value={formData.modelVersion} onChange={(e) => setFormData({ ...formData, modelVersion: e.target.value })} placeholder="例如：latest" />
         </div>
         <div className="md:col-span-2">
           <Label>描述</Label>
