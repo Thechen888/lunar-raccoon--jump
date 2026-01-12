@@ -32,8 +32,8 @@ interface OriginalDocument {
   status: "processed" | "processing";
   tags: string[];
   collectionId: string;
-  conversionStatus: "none" | "processing" | "completed"; // markdown转换状态
-  markdownContent?: string; // 转换后的markdown内容
+  conversionStatus: "none" | "processing" | "completed";
+  markdownContent?: string;
 }
 
 interface DocumentCollection {
@@ -222,7 +222,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     }
   ]);
 
-  // QA数据
   const [qaItems, setQaItems] = useState<QAItem[]>([
     {
       id: "qa-1",
@@ -298,10 +297,8 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
   const [filterType, setFilterType] = useState<string>("all");
   const [processing, setProcessing] = useState(false);
 
-  // 查看Markdown对话框
   const [viewMarkdownDoc, setViewMarkdownDoc] = useState<OriginalDocument | null>(null);
 
-  // QA管理状态
   const [qaSearchTerm, setQaSearchTerm] = useState("");
   const [qaStatusFilter, setQaStatusFilter] = useState<"all" | "active" | "draft" | "archived">("all");
   const [qaDocumentFilter, setQaDocumentFilter] = useState<string>("all");
@@ -323,7 +320,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     return matchesSearch && matchesType && matchesCollection;
   });
 
-  // 筛选QA
   const filteredQaItems = qaItems.filter(qa => {
     const matchesSearch = qa.question.toLowerCase().includes(qaSearchTerm.toLowerCase()) || 
                          qa.answer.toLowerCase().includes(qaSearchTerm.toLowerCase());
@@ -332,7 +328,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     return matchesSearch && matchesStatus && matchesDocument;
   });
 
-  // 按文档分组QA
   const qaByDocument = documents.reduce((acc, doc) => {
     const docQaItems = filteredQaItems.filter(qa => qa.documentId === doc.id);
     if (docQaItems.length > 0) {
@@ -457,14 +452,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     toast.success("文档集已删除");
   };
 
-  const handleReindex = () => {
-    setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      toast.success("文档重新索引完成");
-    }, 3000);
-  };
-
   const handleApiSync = () => {
     setApiSyncing(true);
     setTimeout(() => {
@@ -474,7 +461,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
   };
 
   const handleDownloadDocument = (doc: OriginalDocument) => {
-    // 模拟下载文件
     toast.success(`正在下载: ${doc.name}`);
   };
 
@@ -492,7 +478,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
-  // QA编辑功能
   const handleEditQa = (qa: QAItem) => {
     setEditingQa(qa);
     setQaFormData({
@@ -531,7 +516,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     setExpandedDocuments(newExpanded);
   };
 
-  // QA统计
   const qaStats = {
     total: qaItems.length,
     active: qaItems.filter(qa => qa.status === "active").length,
@@ -566,7 +550,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
           <TabsTrigger value="qa">QA管理</TabsTrigger>
         </TabsList>
 
-        {/* Collections Tab */}
         <TabsContent value="collections" className="space-y-4">
           <Card>
             <CardHeader>
@@ -699,7 +682,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
           </Card>
         </TabsContent>
 
-        {/* Original Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
@@ -711,10 +693,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" onClick={handleReindex} disabled={processing}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${processing ? "animate-spin" : ""}`} />
-                    重新索引
-                  </Button>
                   <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
                     <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
                     API同步
@@ -941,7 +919,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
           </Card>
         </TabsContent>
 
-        {/* QA Management Tab */}
         <TabsContent value="qa" className="space-y-4">
           <Card>
             <CardHeader>
@@ -962,7 +939,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
               </div>
             </CardHeader>
             <CardContent>
-              {/* 筛选和搜索 */}
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -1020,7 +996,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   暂无QA数据
                 </div>
               ) : qaViewMode === "grouped" ? (
-                /* 按文档分组视图 */
                 <div className="space-y-4">
                   {Object.entries(qaByDocument).map(([docId, { document, qaItems: docQaItems }]) => (
                     <Card key={docId}>
@@ -1098,7 +1073,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   ))}
                 </div>
               ) : (
-                /* 列表视图 */
                 <div className="space-y-2">
                   {filteredQaItems.map((qa) => (
                     <Card key={qa.id} className="hover:shadow-md transition-shadow">
@@ -1152,7 +1126,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
         </TabsContent>
       </Tabs>
 
-      {/* 查看Markdown对话框 */}
       <Dialog open={viewMarkdownDoc !== null} onOpenChange={(open) => !open && setViewMarkdownDoc(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
@@ -1194,7 +1167,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
         </DialogContent>
       </Dialog>
 
-      {/* 编辑QA对话框 */}
       <Dialog open={isEditQaDialogOpen} onOpenChange={setIsEditQaDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -1248,7 +1220,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
         </DialogContent>
       </Dialog>
 
-      {/* Edit Collection Dialog */}
       <Dialog open={editingCollection !== null} onOpenChange={() => setEditingCollection(null)}>
         <DialogContent>
           <DialogHeader>
