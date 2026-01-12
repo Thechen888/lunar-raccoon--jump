@@ -314,6 +314,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     answer: "",
     status: "active"
   });
+  const [apiSyncing, setApiSyncing] = useState(false);
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -462,6 +463,14 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
       setProcessing(false);
       toast.success("文档重新索引完成");
     }, 3000);
+  };
+
+  const handleApiSync = () => {
+    setApiSyncing(true);
+    setTimeout(() => {
+      setApiSyncing(false);
+      toast.success("API同步完成");
+    }, 2000);
   };
 
   const handleDownloadDocument = (doc: OriginalDocument) => {
@@ -706,6 +715,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     <RefreshCw className={`h-4 w-4 mr-2 ${processing ? "animate-spin" : ""}`} />
                     重新索引
                   </Button>
+                  <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
+                    API同步
+                  </Button>
                   <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                     <DialogTrigger asChild>
                       <Button>
@@ -942,6 +955,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     管理由原文档自动生成的问答对
                   </CardDescription>
                 </div>
+                <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
+                  API同步
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
