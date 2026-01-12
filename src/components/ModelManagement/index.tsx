@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ModelTable } from "./ModelTable";
 import { ModelForm } from "./ModelForm";
 import { PromptConfigDialog } from "./PromptConfigDialog";
+import { showLoading, toast as customToast } from "@/utils/toast";
 
 interface ModelConfig {
   id: string;
@@ -93,10 +94,26 @@ export const ModelManagement = () => {
   };
 
   const handleTestModel = (modelId: string) => {
+    const model = models.find(m => m.id === modelId);
+    if (!model) return;
+
     setTestingModel(modelId);
+    
+    // 显示测试中的加载提示
+    const loadingToastId = showLoading(`正在测试模型: ${model.name}...`);
+
+    // 模拟测试过程（这里应该是实际的API调用）
     setTimeout(() => {
+      // 模拟成功/失败（这里可以根据实际测试结果来判断）
+      const isSuccess = Math.random() > 0.2; // 80%成功，20%失败
+
       setTestingModel(null);
-      toast.success("模型测试成功");
+
+      if (isSuccess) {
+        toast.success(`模型测试成功: ${model.name}`);
+      } else {
+        toast.error(`模型测试失败: ${model.name}`);
+      }
     }, 2000);
   };
 
