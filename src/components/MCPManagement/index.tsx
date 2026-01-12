@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Server } from "lucide-react";
 import { toast } from "sonner";
-import { MCPComplexityTree, MCPProvider, MCPComplexity, MCPRegion, MCPService } from "./MCPComplexityTree";
+import { MCPComplexityTree, MCPProvider, MCPComplexity, MCPRegion, MCPService, MCPServiceConfig } from "./MCPComplexityTree";
+import { MCPProviderConfig } from "./MCPProviderConfig";
 import { MCPDetailDialog } from "./MCPDetailDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 interface MCPManagementProps {
   onServicesChange: (services: MCPService[]) => void;
@@ -13,6 +15,13 @@ interface MCPManagementProps {
 
 export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps) => {
   const [detailService, setDetailService] = useState<MCPService | null>(null);
+  const [editingService, setEditingService] = useState<{
+    providerId: string;
+    regionId?: string;
+    complexityId?: string;
+    service: MCPService;
+  } | null>(null);
+  const [editConfigDialogOpen, setEditConfigDialogOpen] = useState(false);
 
   // 初始化层级数据结构 - 支持不同层级
   const [providers, setProviders] = useState<MCPProvider[]>([
@@ -164,6 +173,65 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
     }
   ]);
 
+  // 示例工具数据
+  const exampleTools = [
+    {
+      id: "tool-1",
+      name: "代码生成",
+      description: "根据需求生成高质量代码，支持多种编程语言",
+      method: "POST",
+      path: "/api/code/generate",
+      enabled: true,
+      projectId: "proj-pangu-001"
+    },
+    {
+      id: "tool-2",
+      name: "文本分析",
+      description: "分析文本内容，提取关键信息和情感倾向",
+      method: "POST",
+      path: "/api/text/analyze",
+      enabled: true,
+      projectId: "proj-pangu-002"
+    },
+    {
+      id: "tool-3",
+      name: "数据查询",
+      description: "查询数据库中的数据，支持复杂查询条件",
+      method: "GET",
+      path: "/api/data/query",
+      enabled: false,
+      projectId: "proj-pangu-003"
+    },
+    {
+      id: "tool-4",
+      name: "文件处理",
+      description: "上传、下载和处理各种格式的文件",
+      method: "POST",
+      path: "/api/file/process",
+      enabled: true,
+      projectId: "proj-pangu-004"
+    }
+  ];
+
+  // 示例提示数据
+  const examplePrompts = [
+    {
+      id: "prompt-1",
+      name: "系统提示词",
+      content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。对于技术问题，请提供详细的解释和示例代码。"
+    },
+    {
+      id: "prompt-2",
+      name: "代码审查提示词",
+      content: "请审查以下代码，检查潜在的bug、性能问题和代码风格问题。提供具体的改进建议。"
+    },
+    {
+      id: "prompt-3",
+      name: "数据分析提示词",
+      content: "请分析以下数据，提供关键洞察、趋势分析和可视化建议。使用专业的数据分析方法。"
+    }
+  ];
+
   // 将层级结构转换为服务列表（供其他组件使用）
   const convertToServices = (providers: MCPProvider[]): MCPService[] => {
     const services: MCPService[] = [];
@@ -179,8 +247,8 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
           headers: provider.service.headers,
           status: "active",
           createdAt: "2024-01-01",
-          tools: [],
-          prompts: []
+          tools: exampleTools,
+          prompts: examplePrompts
         });
       } else if (provider.layer === 2) {
         // 二层模式：区域上配置
@@ -194,8 +262,8 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
               headers: region.service.headers,
               status: "active",
               createdAt: "2024-01-01",
-              tools: [],
-              prompts: []
+              tools: exampleTools,
+              prompts: examplePrompts
             });
           }
         });
@@ -212,8 +280,8 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
                 headers: complexity.service.headers,
                 status: "active",
                 createdAt: "2024-01-01",
-                tools: [],
-                prompts: []
+                tools: exampleTools,
+                prompts: examplePrompts
               });
             }
           });
@@ -279,7 +347,102 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
   };
 
   const handleToggleTool = (toolId: string) => {
-    // TODO: 实现工具切换逻辑
+    if (detailService) {
+      const updatedTools = detailService.tools?.map(tool =>
+        tool.id === toolId ? { ...tool, enabled: !tool.enabled } : tool
+      );
+      
+      const updatedService = {
+        ...detailService,
+        tools: updatedTools || []
+      };
+      
+      setDetailService(updatedService);
+      onServicesChange(
+        convertToServices(providers).map(s =>
+          s.id === detailService.id ? updatedService : s
+        )
+      );
+    }
+  };
+
+  const handleEditService = (service: MCPService) => {
+    // 解析serviceId获取providerId, regionId, complexityId
+    const parts = service.id.split('-');
+    const providerId = parts[0];
+    const regionId = parts[1];
+    const complexityId = parts[2];
+    
+    const provider = providers.find(p => p.id === providerId);
+    if (!provider) return;
+    
+    let serviceConfig: MCPServiceConfig | undefined;
+    
+    if (provider.layer === 1) {
+      serviceConfig = provider.service;
+    } else if (provider.layer === 2 && regionId) {
+      const region = provider.regions.find(r => r.id === regionId);
+      serviceConfig = region?.service;
+    } else if (provider.layer === 3 && regionId && complexityId) {
+      const region = provider.regions.find(r => r.id === regionId);
+      const complexity = region?.complexities.find(c => c.id === complexityId);
+      serviceConfig = complexity?.service;
+    }
+    
+    if (serviceConfig) {
+      setEditingService({
+        providerId,
+        regionId,
+        complexityId,
+        service
+      });
+      setEditConfigDialogOpen(true);
+    }
+  };
+
+  const handleSaveEditService = (config: MCPServiceConfig) => {
+    if (!editingService) return;
+
+    const newProviders = providers.map(provider => {
+      if (provider.id !== editingService.providerId) return provider;
+      
+      if (!editingService.regionId) {
+        // 一层模式
+        return { ...provider, service: config };
+      }
+      
+      if (!editingService.complexityId) {
+        // 二层模式
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== editingService.regionId) return region;
+            return { ...region, service: config };
+          })
+        };
+      }
+      
+      // 三层模式
+      return {
+        ...provider,
+        regions: provider.regions.map(region => {
+          if (region.id !== editingService.regionId) return region;
+          return {
+            ...region,
+            complexities: region.complexities.map(complexity => {
+              if (complexity.id !== editingService.complexityId) return complexity;
+              return { ...complexity, service: config };
+            })
+          };
+        })
+      };
+    });
+
+    handleProvidersChange(newProviders);
+    setEditConfigDialogOpen(false);
+    setEditingService(null);
+    setDetailService(null);
+    toast.success("服务配置已更新");
   };
 
   return (
@@ -311,11 +474,35 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
           service={detailService}
           open={true}
           onOpenChange={() => setDetailService(null)}
-          onEdit={() => {}}
+          onEdit={handleEditService}
           onDelete={handleDeleteService}
           onToggleTool={handleToggleTool}
         />
       )}
+
+      {/* 编辑服务配置对话框 */}
+      <Dialog open={editConfigDialogOpen} onOpenChange={setEditConfigDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>编辑服务配置</DialogTitle>
+          </DialogHeader>
+          {editingService && (
+            <MCPProviderConfig
+              initialData={{
+                name: editingService.service.name,
+                description: editingService.service.description,
+                url: editingService.service.url,
+                headers: editingService.service.headers
+              }}
+              onSave={handleSaveEditService}
+              onCancel={() => {
+                setEditConfigDialogOpen(false);
+                setEditingService(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
