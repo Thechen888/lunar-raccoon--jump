@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-import { Search, Globe, Zap, Code, MessageSquare, Trash2, Edit, Plus } from "lucide-react";
+import { Search, Globe, Zap, Code, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
 export interface MCPServiceConfig {
@@ -48,36 +48,55 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
   const [headers, setHeaders] = useState(initialData?.headers || "");
   
   const [tools, setTools] = useState<MCPServiceConfig["tools"]>(
-    initialData?.tools || []
+    initialData?.tools || [
+      {
+        id: "tool-1",
+        name: "代码生成",
+        description: "根据需求生成高质量代码",
+        method: "POST",
+        path: "/api/code/generate",
+        enabled: true
+      },
+      {
+        id: "tool-2",
+        name: "文本分析",
+        description: "分析文本内容，提取关键信息",
+        method: "POST",
+        path: "/api/text/analyze",
+        enabled: true
+      },
+      {
+        id: "tool-3",
+        name: "数据查询",
+        description: "查询数据库中的数据",
+        method: "GET",
+        path: "/api/data/query",
+        enabled: false
+      }
+    ]
   );
   const [prompts, setPrompts] = useState<MCPServiceConfig["prompts"]>(
-    initialData?.prompts || []
+    initialData?.prompts || [
+      {
+        id: "prompt-1",
+        name: "系统提示词",
+        content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。"
+      },
+      {
+        id: "prompt-2",
+        name: "代码生成提示",
+        content: "请根据以下需求生成代码，确保代码质量高、可读性强、注释完整。"
+      },
+      {
+        id: "prompt-3",
+        name: "数据分析提示",
+        content: "请分析以下数据，提供关键洞察和建议。数据如下：\n\n{data}"
+      }
+    ]
   );
 
   // 工具搜索
   const [toolSearchTerm, setToolSearchTerm] = useState("");
-  
-  // 添加工具表单
-  const [isAddToolOpen, setIsAddToolOpen] = useState(false);
-  const [newTool, setNewTool] = useState({
-    name: "",
-    description: "",
-    method: "POST",
-    path: ""
-  });
-
-  // 编辑工具
-  const [editingTool, setEditingTool] = useState<number | null>(null);
-
-  // 添加提示表单
-  const [isAddPromptOpen, setIsAddPromptOpen] = useState(false);
-  const [newPrompt, setNewPrompt] = useState({
-    name: "",
-    content: ""
-  });
-
-  // 编辑提示
-  const [editingPrompt, setEditingPrompt] = useState<number | null>(null);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -98,127 +117,10 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
     });
   };
 
-  // 工具管理
-  const handleAddTool = () => {
-    if (!newTool.name.trim() || !newTool.path.trim()) {
-      toast.error("请填写工具名称和路径");
-      return;
-    }
-    
-    const tool = {
-      id: `tool-${Date.now()}`,
-      name: newTool.name.trim(),
-      description: newTool.description.trim(),
-      method: newTool.method,
-      path: newTool.path.trim(),
-      enabled: true
-    };
-    
-    setTools([...(tools || []), tool]);
-    setNewTool({ name: "", description: "", method: "POST", path: "" });
-    setIsAddToolOpen(false);
-    toast.success("工具已添加");
-  };
-
-  const handleEditTool = (index: number) => {
-    const tool = tools?.[index];
-    if (tool) {
-      setEditingTool(index);
-      setNewTool({
-        name: tool.name,
-        description: tool.description,
-        method: tool.method,
-        path: tool.path
-      });
-      setIsAddToolOpen(true);
-    }
-  };
-
-  const handleUpdateTool = () => {
-    if (editingTool !== null && tools) {
-      const updatedTools = [...tools];
-      updatedTools[editingTool] = {
-        ...updatedTools[editingTool],
-        name: newTool.name.trim(),
-        description: newTool.description.trim(),
-        method: newTool.method,
-        path: newTool.path.trim()
-      };
-      setTools(updatedTools);
-      setEditingTool(null);
-      setNewTool({ name: "", description: "", method: "POST", path: "" });
-      setIsAddToolOpen(false);
-      toast.success("工具已更新");
-    }
-  };
-
-  const handleDeleteTool = (index: number) => {
-    if (tools) {
-      setTools(tools.filter((_, i) => i !== index));
-      toast.success("工具已删除");
-    }
-  };
-
-  const handleToggleTool = (index: number) => {
-    if (tools) {
-      const updatedTools = [...tools];
-      updatedTools[index].enabled = !updatedTools[index].enabled;
-      setTools(updatedTools);
-    }
-  };
-
-  // 提示管理
-  const handleAddPrompt = () => {
-    if (!newPrompt.name.trim() || !newPrompt.content.trim()) {
-      toast.error("请填写提示名称和内容");
-      return;
-    }
-    
-    const prompt = {
-      id: `prompt-${Date.now()}`,
-      name: newPrompt.name.trim(),
-      content: newPrompt.content.trim()
-    };
-    
-    setPrompts([...(prompts || []), prompt]);
-    setNewPrompt({ name: "", content: "" });
-    setIsAddPromptOpen(false);
-    toast.success("提示已添加");
-  };
-
-  const handleEditPrompt = (index: number) => {
-    const prompt = prompts?.[index];
-    if (prompt) {
-      setEditingPrompt(index);
-      setNewPrompt({
-        name: prompt.name,
-        content: prompt.content
-      });
-      setIsAddPromptOpen(true);
-    }
-  };
-
-  const handleUpdatePrompt = () => {
-    if (editingPrompt !== null && prompts) {
-      const updatedPrompts = [...prompts];
-      updatedPrompts[editingPrompt] = {
-        ...updatedPrompts[editingPrompt],
-        name: newPrompt.name.trim(),
-        content: newPrompt.content.trim()
-      };
-      setPrompts(updatedPrompts);
-      setEditingPrompt(null);
-      setNewPrompt({ name: "", content: "" });
-      setIsAddPromptOpen(false);
-      toast.success("提示已更新");
-    }
-  };
-
-  const handleDeletePrompt = (index: number) => {
-    if (prompts) {
-      setPrompts(prompts.filter((_, i) => i !== index));
-      toast.success("提示已删除");
-    }
+  const handleToggleTool = (toolId: string) => {
+    setTools(tools?.map(tool => 
+      tool.id === toolId ? { ...tool, enabled: !tool.enabled } : tool
+    ));
   };
 
   const filteredTools = tools?.filter(tool => 
@@ -289,17 +191,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
         <TabsContent value="tools" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">工具管理</CardTitle>
-                <Button size="sm" onClick={() => {
-                  setIsAddToolOpen(true);
-                  setEditingTool(null);
-                  setNewTool({ name: "", description: "", method: "POST", path: "" });
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  添加工具
-                </Button>
-              </div>
+              <CardTitle className="text-lg">工具管理</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* 搜索框 */}
@@ -321,7 +213,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
               ) : (
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-3">
-                    {filteredTools.map((tool, index) => (
+                    {filteredTools.map((tool) => (
                       <Card key={tool.id}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
@@ -353,22 +245,8 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                             <div className="flex items-center space-x-2 ml-4">
                               <Switch
                                 checked={tool.enabled}
-                                onCheckedChange={() => handleToggleTool(index)}
+                                onCheckedChange={() => handleToggleTool(tool.id)}
                               />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditTool(index)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteTool(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
                             </div>
                           </div>
                         </CardContent>
@@ -379,88 +257,12 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
               )}
             </CardContent>
           </Card>
-
-          {/* 添加/编辑工具对话框 */}
-          {isAddToolOpen && (
-            <Card className="border-primary">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {editingTool !== null ? "编辑工具" : "添加工具"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>名称 <span className="text-red-500">*</span></Label>
-                  <Input
-                    value={newTool.name}
-                    onChange={(e) => setNewTool({ ...newTool, name: e.target.value })}
-                    placeholder="例如：代码生成"
-                  />
-                </div>
-                <div>
-                  <Label>描述</Label>
-                  <Textarea
-                    value={newTool.description}
-                    onChange={(e) => setNewTool({ ...newTool, description: e.target.value })}
-                    placeholder="描述这个工具的用途..."
-                    rows={2}
-                  />
-                </div>
-                <div>
-                  <Label>Method <span className="text-red-500">*</span></Label>
-                  <div className="flex space-x-2 mt-1">
-                    {["GET", "POST", "PUT", "DELETE"].map((method) => (
-                      <Button
-                        key={method}
-                        type="button"
-                        variant={newTool.method === method ? "default" : "outline"}
-                        onClick={() => setNewTool({ ...newTool, method })}
-                        size="sm"
-                      >
-                        {method}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Label>Path <span className="text-red-500">*</span></Label>
-                  <Input
-                    value={newTool.path}
-                    onChange={(e) => setNewTool({ ...newTool, path: e.target.value })}
-                    placeholder="/api/code/generate"
-                  />
-                </div>
-                <div className="flex space-x-2 pt-2">
-                  <Button variant="outline" onClick={() => {
-                    setIsAddToolOpen(false);
-                    setEditingTool(null);
-                    setNewTool({ name: "", description: "", method: "POST", path: "" });
-                  }}>
-                    取消
-                  </Button>
-                  <Button onClick={editingTool !== null ? handleUpdateTool : handleAddTool}>
-                    {editingTool !== null ? "更新" : "添加"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="prompts" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">提示管理</CardTitle>
-                <Button size="sm" onClick={() => {
-                  setIsAddPromptOpen(true);
-                  setEditingPrompt(null);
-                  setNewPrompt({ name: "", content: "" });
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  添加提示
-                </Button>
-              </div>
+              <CardTitle className="text-lg">提示管理</CardTitle>
             </CardHeader>
             <CardContent>
               {(!prompts || prompts.length === 0) ? (
@@ -470,29 +272,13 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
               ) : (
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-3">
-                    {prompts.map((prompt, index) => (
+                    {prompts.map((prompt) => (
                       <Card key={prompt.id}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center space-x-2 flex-1">
                               <MessageSquare className="h-4 w-4 text-primary" />
                               <span className="font-medium">{prompt.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditPrompt(index)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeletePrompt(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
                             </div>
                           </div>
                           <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
@@ -506,48 +292,6 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
               )}
             </CardContent>
           </Card>
-
-          {/* 添加/编辑提示对话框 */}
-          {isAddPromptOpen && (
-            <Card className="border-primary">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {editingPrompt !== null ? "编辑提示" : "添加提示"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>名称 <span className="text-red-500">*</span></Label>
-                  <Input
-                    value={newPrompt.name}
-                    onChange={(e) => setNewPrompt({ ...newPrompt, name: e.target.value })}
-                    placeholder="例如：系统提示词"
-                  />
-                </div>
-                <div>
-                  <Label>内容 <span className="text-red-500">*</span></Label>
-                  <Textarea
-                    value={newPrompt.content}
-                    onChange={(e) => setNewPrompt({ ...newPrompt, content: e.target.value })}
-                    placeholder="输入提示内容..."
-                    rows={6}
-                  />
-                </div>
-                <div className="flex space-x-2 pt-2">
-                  <Button variant="outline" onClick={() => {
-                    setIsAddPromptOpen(false);
-                    setEditingPrompt(null);
-                    setNewPrompt({ name: "", content: "" });
-                  }}>
-                    取消
-                  </Button>
-                  <Button onClick={editingPrompt !== null ? handleUpdatePrompt : handleAddPrompt}>
-                    {editingPrompt !== null ? "更新" : "添加"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
       </Tabs>
 
