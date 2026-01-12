@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers, Eye } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,9 +47,10 @@ export interface MCPProvider {
 interface MCPComplexityTreeProps {
   providers: MCPProvider[];
   onProvidersChange: (providers: MCPProvider[]) => void;
+  onServiceDetail: (service: MCPService) => void;
 }
 
-export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexityTreeProps) => {
+export const MCPComplexityTree = ({ providers, onProvidersChange, onServiceDetail }: MCPComplexityTreeProps) => {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set(["pangu", "hub"]));
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const [selectedComplexity, setSelectedComplexity] = useState<string | null>(null);
@@ -85,6 +86,75 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     complexityId?: string;
     name: string;
   } | null>(null);
+
+  // 将层级结构转换为服务列表
+  const convertToServices = (providers: MCPProvider[]): MCPService[] => {
+    const services: MCPService[] = [];
+    
+    providers.forEach(provider => {
+      if (provider.layer === 1 && provider.service) {
+        services.push({
+          id: provider.id,
+          name: provider.service.name,
+          description: provider.service.description || "",
+          url: provider.service.url,
+          headers: provider.service.headers,
+          status: "active",
+          createdAt: "2024-01-01",
+          tools: [],
+          prompts: []
+        });
+      } else if (provider.layer === 2) {
+        provider.regions.forEach(region => {
+          if (region.service) {
+            services.push({
+              id: `${provider.id}-${region.id}`,
+              name: region.service.name,
+              description: region.service.description || "",
+              url: region.service.url,
+              headers: region.service.headers,
+              status: "active",
+              createdAt: "2024-01-01",
+              tools: [],
+              prompts: []
+            });
+          }
+        });
+      } else if (provider.layer === 3) {
+        provider.regions.forEach(region => {
+          region.complexities.forEach(complexity => {
+            if (complexity.service) {
+              services.push({
+                id: `${provider.id}-${region.id}-${complexity.id}`,
+                name: complexity.service.name,
+                description: complexity.service.description || "",
+                url: complexity.service.url,
+                headers: complexity.service.headers,
+                status: "active",
+                createdAt: "2024-01-01",
+                tools: [],
+                prompts: []
+              });
+            }
+          });
+        });
+      }
+    });
+    
+    return services;
+  };
+
+  // 获取服务ID
+  const getServiceId = (providerId: string, regionId?: string, complexityId?: string): string | null => {
+    const services = convertToServices(providers);
+    if (regionId && complexityId) {
+      return services.find(s => s.id === `${providerId}-${regionId}-${complexityId}`)?.id || null;
+    } else if (regionId) {
+      return services.find(s => s.id === `${providerId}-${regionId}`)?.id || null;
+    } else {
+      return services.find(s => s.id === providerId)?.id || null;
+    }
+  };
 
   // 计算提供商的配置状态
   const getProviderConfigStatus = (provider: MCPProvider) => {
@@ -306,12 +376,12 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         regions: provider.regions.map(region => {
           if (region.id !== editingComplexity.regionId) return region;
           return {
-            ...region,
-            complexities: region.complexities.map(complexity =>
-              complexity.id === editingComplexity.complexity.id 
-                ? { ...complexity, name: data.name, description: data.description }
-                : complexity
-            )
+              ...region,
+              complexities: region.complexities.map(complexity =>
+                complexity.id === editingComplexity.complexity.id 
+                  ? { ...complexity, name: data.name, description: data.description }
+                  : complexity
+              )
           };
         })
       };
@@ -408,6 +478,18 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                   ) : null}
                 </div>
                 <div className="flex items-center space-x-2">
+                  {/* 一层：配置了服务后显示详情按钮 */}
+                  {provider.layer === 1 && provider.service && (
+                    <Button variant="ghost" size="sm" onClick={() => {
+                      const serviceId = getServiceId(provider.id);
+                      if (serviceId) {
+                        const service = convertToServices(providers).find(s => s.id === serviceId);
+                        if (service) onServiceDetail(service);
+                      }
+                    }} title="查看详情">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="sm" onClick={(e) => {
                     e.stopPropagation();
                     setEditingProvider(provider);
@@ -470,6 +552,23 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                           )}
                         </div>
                         <div className="flex items-center space-x-2">
+                          {/* 二层：配置了服务后显示详情按钮 */}
+                          {provider.layer === 2 && region.service && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const serviceId = getServiceId(provider.id, region.id);
+                                if (serviceId) {
+                                  const service = convertToServices(providers).find(s => s.id === serviceId);
+                                  if (service) onServiceDetail(service);
+                                }
+                              }}
+                              title="查看详情"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                           {provider.layer === 2 && (
                             <Button
                               variant="ghost"
@@ -526,13 +625,22 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                                   )}
                                 </div>
                                 <div className="flex items-center space-x-2">
+                                  {/* 三层：配置了服务后显示详情按钮 */}
                                   {complexity.service && (
-                                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                                      <Globe className="h-3 w-3" />
-                                      <code className="bg-muted px-2 py-0.5 rounded max-w-[150px] truncate">
-                                        {complexity.service.url}
-                                      </code>
-                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const serviceId = getServiceId(provider.id, region.id, complexity.id);
+                                        if (serviceId) {
+                                          const service = convertToServices(providers).find(s => s.id === serviceId);
+                                          if (service) onServiceDetail(service);
+                                        }
+                                      }}
+                                      title="查看详情"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
                                   )}
                                   <Button
                                     variant="ghost"

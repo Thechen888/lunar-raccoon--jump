@@ -231,11 +231,6 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
     onServicesChange(newServices);
   };
 
-  // 获取服务详情（用于显示完整服务信息）
-  const getServiceById = (serviceId: string): MCPService | null => {
-    return convertToServices(providers).find(s => s.id === serviceId) || null;
-  };
-
   const handleDeleteService = (serviceId: string) => {
     const parts = serviceId.split('-');
     
@@ -305,6 +300,7 @@ export const MCPManagement = ({ onServicesChange, services }: MCPManagementProps
           <MCPComplexityTree
             providers={providers}
             onProvidersChange={handleProvidersChange}
+            onServiceDetail={setDetailService}
           />
         </CardContent>
       </Card>
