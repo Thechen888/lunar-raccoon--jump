@@ -225,31 +225,33 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                 </Badge>
               )}
               {selectedMCPs.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearAllMCPs}
-                  className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-                >
-                  清空
-                </Button>
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearAllMCPs}
+                    className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    清空
+                  </Button>
+                  {selectedMCPs.map((selection) => {
+                    const provider = mcpProviders.find(p => p.id === selection.providerId);
+                    const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
+                    const selectedComplexity = provider?.complexityLevels?.find(c => c.id === selection.complexityId);
+                    return (
+                      <Badge key={selection.providerId} variant="outline" className="text-xs flex items-center gap-1">
+                        {provider?.name} {selectedRegions.map(r => r.name).join('+')} {selectedComplexity?.name}
+                        <button
+                          onClick={() => handleRemoveMCP(selection.providerId)}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </>
               )}
-              {selectedMCPs.map((selection) => {
-                const provider = mcpProviders.find(p => p.id === selection.providerId);
-                const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
-                const selectedComplexity = provider?.complexityLevels?.find(c => c.id === selection.complexityId);
-                return (
-                  <Badge key={selection.providerId} variant="outline" className="text-xs flex items-center gap-1">
-                    {provider?.name} {selectedRegions.map(r => r.name).join('+')} {selectedComplexity?.name}
-                    <button
-                      onClick={() => handleRemoveMCP(selection.providerId)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                );
-              })}
             </div>
           </div>
         </CardHeader>
