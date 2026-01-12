@@ -137,6 +137,43 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
     }, 1500);
   };
 
+  const handleMCPSelect = (selections: MCPSelection[]) => {
+    setSelectedMCPs(selections);
+    
+    // 只在真正选定到复杂度（三层结构）或区域（二层结构）时显示提示
+    if (selections.length > 0) {
+      const hasCompleteSelection = selections.some(s => {
+        const provider = mcpProviders.find(p => p.id === s.providerId);
+        
+        // 三层结构（如PANGU）：需要选中复杂度
+        if (provider?.layer === 3) {
+          return s.complexityId !== "";
+        }
+        
+        // 二层结构（如HUB）：需要选中区域
+        if (provider?.layer === 2) {
+          return s.regionIds.length > 0;
+        }
+        
+        // 一层结构：只要选中provider即可
+        return true;
+      });
+      
+      if (hasCompleteSelection) {
+        const summary = selections.map(s => {
+          const provider = mcpProviders.find(p => p.id === s.providerId);
+          const regions = provider?.regions?.filter(r => s.regionIds.includes(r.id)).map(r => r.name) || [];
+          const complexity = provider?.complexityLevels?.find(c => c.id === s.complexityId)?.name || "";
+          return `${provider?.name || s.providerId} ${regions.length > 0 ? `(${regions.join(", ")})` : ""} ${complexity ? `-${complexity}` : ""}`;
+        }).join(", ");
+        toast({
+          title: "MCP 已选择",
+          description: summary,
+        });
+      }
+    }
+  };
+
   const getProviderName = (providerId: string) => {
     return mcpProviders.find(p => p.id === providerId)?.name || providerId;
   };
@@ -176,7 +213,7 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                   </AccordionTrigger>
                   <AccordionContent className="pb-4">
                     <MCPSelector
-                      onSelect={onMCPSelect}
+                      onSelect={handleMCPSelect}
                       selectedMCPs={selectedMCPs}
                       providers={mcpProviders}
                     />
