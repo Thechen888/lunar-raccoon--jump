@@ -563,53 +563,59 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     管理文档集，每个文档集包含多个原文档
                   </CardDescription>
                 </div>
-                <Dialog open={isAddCollectionDialogOpen} onOpenChange={setIsAddCollectionDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      创建文档集
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>创建新文档集</DialogTitle>
-                      <DialogDescription>
-                        创建一个新的文档集来组织相关文档
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label>名称</Label>
-                        <Input placeholder="输入文档集名称" />
-                      </div>
-                      <div>
-                        <Label>类型</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="选择类型" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="技术文档">技术文档</SelectItem>
-                            <SelectItem value="业务文档">业务文档</SelectItem>
-                            <SelectItem value="法律文档">法律文档</SelectItem>
-                            <SelectItem value="知识库">知识库</SelectItem>
-                            <SelectItem value="通用">通用</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>描述</Label>
-                        <Textarea placeholder="描述这个文档集的用途" />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsAddCollectionDialogOpen(false)}>
-                        取消
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
+                    API同步
+                  </Button>
+                  <Dialog open={isAddCollectionDialogOpen} onOpenChange={setIsAddCollectionDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        创建文档集
                       </Button>
-                      <Button onClick={handleAddCollection}>创建</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>创建新文档集</DialogTitle>
+                        <DialogDescription>
+                          创建一个新的文档集来组织相关文档
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>名称</Label>
+                          <Input placeholder="输入文档集名称" />
+                        </div>
+                        <div>
+                          <Label>类型</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="选择类型" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="技术文档">技术文档</SelectItem>
+                              <SelectItem value="业务文档">业务文档</SelectItem>
+                              <SelectItem value="法律文档">法律文档</SelectItem>
+                              <SelectItem value="知识库">知识库</SelectItem>
+                              <SelectItem value="通用">通用</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>描述</Label>
+                          <Textarea placeholder="描述这个文档集的用途" />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddCollectionDialogOpen(false)}>
+                          取消
+                        </Button>
+                        <Button onClick={handleAddCollection}>创建</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -693,10 +699,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
-                    API同步
-                  </Button>
                   <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                     <DialogTrigger asChild>
                       <Button>
@@ -932,10 +934,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     管理由原文档自动生成的问答对
                   </CardDescription>
                 </div>
-                <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
-                  <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
-                  API同步
-                </Button>
               </div>
             </CardHeader>
             <CardContent>
