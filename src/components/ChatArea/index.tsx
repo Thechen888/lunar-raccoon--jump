@@ -138,8 +138,6 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
   };
 
   const handleMCPSelect = (selections: MCPSelection[]) => {
-    setSelectedMCPs(selections);
-    
     // 只在真正选定到复杂度（三层结构）或区域（二层结构）时显示提示
     if (selections.length > 0) {
       const hasCompleteSelection = selections.some(s => {
@@ -172,6 +170,9 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
         });
       }
     }
+    
+    // 调用父组件传入的回调函数更新选择
+    onMCPSelect(selections);
   };
 
   const getProviderName = (providerId: string) => {
