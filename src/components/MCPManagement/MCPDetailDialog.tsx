@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Settings, Trash2, Globe, Code } from "lucide-react";
 import { ToolList } from "./ToolList";
 import { PromptList } from "./PromptList";
@@ -15,7 +16,7 @@ export interface Tool {
   enabled: boolean;
   details?: string;
   projectId?: string;
-  [key: string]: any;
+  [key: string]: any; // 支持其他动态字段
 }
 
 export interface Prompt {
@@ -41,7 +42,7 @@ interface MCPDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: (service: MCPService) => void;
-  onDelete: (serviceId: string) => void;
+  onDelete: (id: string) => void;
   onToggleTool: (toolId: string) => void;
 }
 
@@ -54,69 +55,6 @@ export const MCPDetailDialog = ({
   onToggleTool 
 }: MCPDetailDialogProps) => {
   const [activeTab, setActiveTab] = useState("info");
-
-  // 示例工具数据
-  const exampleTools: Tool[] = [
-    {
-      id: "tool-code-gen",
-      name: "代码生成",
-      description: "根据需求生成高质量代码，支持多种编程语言",
-      method: "POST",
-      path: "/api/code/generate",
-      enabled: true,
-      projectId: "proj-example-001"
-    },
-    {
-      id: "tool-text-analyze",
-      name: "文本分析",
-      description: "分析文本内容，提取关键信息和情感倾向",
-      method: "POST",
-      path: "/api/text/analyze",
-      enabled: true,
-      projectId: "proj-example-002"
-    },
-    {
-      id: "tool-data-query",
-      name: "数据查询",
-      description: "查询数据库中的数据，支持复杂查询条件",
-      method: "GET",
-      path: "/api/data/query",
-      enabled: false,
-      projectId: "proj-example-003"
-    },
-    {
-      id: "tool-file-process",
-      name: "文件处理",
-      description: "上传、下载和处理各种格式的文件",
-      method: "POST",
-      path: "/api/file/process",
-      enabled: true,
-      projectId: "proj-example-004"
-    }
-  ];
-
-  // 示例提示数据
-  const examplePrompts: Prompt[] = [
-    {
-      id: "prompt-system",
-      name: "系统提示词",
-      content: "你是一个专业的AI助手，擅长回答各类问题。请确保回答准确、简洁、有帮助。对于技术问题，请提供详细的解释和示例代码。"
-    },
-    {
-      id: "prompt-code-review",
-      name: "代码审查提示词",
-      content: "请审查以下代码，检查潜在的bug、性能问题和代码风格问题。提供具体的改进建议。\n\n代码：\n{code}"
-    },
-    {
-      id: "prompt-data-analysis",
-      name: "数据分析提示词",
-      content: "请分析以下数据，提供关键洞察、趋势分析和可视化建议。使用专业的数据分析方法。\n\n数据：\n{data}"
-    }
-  ];
-
-  // 优先使用传入的工具/提示，如果没有则使用示例数据
-  const toolsToShow = service.tools && service.tools.length > 0 ? service.tools : exampleTools;
-  const promptsToShow = service.prompts && service.prompts.length > 0 ? service.prompts : examplePrompts;
 
   const handleToggleTool = (toolId: string) => {
     onToggleTool(toolId);
@@ -209,7 +147,7 @@ export const MCPDetailDialog = ({
             </div>
             <div className="flex-1 overflow-hidden">
               <ToolList 
-                tools={toolsToShow} 
+                tools={service.tools || []} 
                 onToggleTool={handleToggleTool}
               />
             </div>
@@ -221,7 +159,7 @@ export const MCPDetailDialog = ({
                 提示内容自动从服务端拉取，无法手动添加
               </p>
             </div>
-            <PromptList prompts={promptsToShow} />
+            <PromptList prompts={service.prompts || []} />
           </TabsContent>
         </Tabs>
       </DialogContent>
