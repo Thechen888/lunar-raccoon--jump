@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MessageSquare, Settings2, X } from "lucide-react";
+import { MessageSquare, Settings2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
@@ -10,7 +10,6 @@ import { LoadingIndicator } from "./LoadingIndicator";
 import { ChatConfig } from "./ChatConfig";
 import { MCPSelector, MCPSelection } from "../MCPSelector";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 
 interface Message {
   id: string;
@@ -142,17 +141,6 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
     return mcpProviders.find(p => p.id === providerId)?.name || providerId;
   };
 
-  const handleRemoveMCP = (providerId: string) => {
-    const newSelections = selectedMCPs.filter(s => s.providerId !== providerId);
-    onMCPSelect(newSelections);
-    toast.success("MCP已移除");
-  };
-
-  const handleClearAllMCPs = () => {
-    onMCPSelect([]);
-    toast.success("已清空所有MCP");
-  };
-
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
       {/* 左侧配置面板 - 使用折叠面板 */}
@@ -224,34 +212,16 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                   {chatConfig.databaseAddress}
                 </Badge>
               )}
-              {selectedMCPs.length > 0 && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearAllMCPs}
-                    className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-                  >
-                    清空
-                  </Button>
-                  {selectedMCPs.map((selection) => {
-                    const provider = mcpProviders.find(p => p.id === selection.providerId);
-                    const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
-                    const selectedComplexity = provider?.complexityLevels?.find(c => c.id === selection.complexityId);
-                    return (
-                      <Badge key={selection.providerId} variant="outline" className="text-xs flex items-center gap-1">
-                        {provider?.name} {selectedRegions.map(r => r.name).join('+')} {selectedComplexity?.name}
-                        <button
-                          onClick={() => handleRemoveMCP(selection.providerId)}
-                          className="ml-1 hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    );
-                  })}
-                </>
-              )}
+              {selectedMCPs.map((selection) => {
+                const provider = mcpProviders.find(p => p.id === selection.providerId);
+                const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
+                const selectedComplexity = provider?.complexityLevels?.find(c => c.id === selection.complexityId);
+                return (
+                  <Badge key={selection.providerId} variant="outline" className="text-xs">
+                    {provider?.name} {selectedRegions.map(r => r.name).join('+')} {selectedComplexity?.name}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         </CardHeader>
