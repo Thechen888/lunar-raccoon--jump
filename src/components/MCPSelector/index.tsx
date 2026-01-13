@@ -7,7 +7,7 @@ import { ChevronRight, ChevronDown, Check, Info, Layers } from "lucide-react";
 export interface MCPSelection {
   providerId: string;
   regionIds: string[];  // 多选区域
-  complexityId: string; // 单选复杂度
+  complexityIds: string[]; // 多选复杂度
 }
 
 interface MCPProvider {
@@ -58,7 +58,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
     if (provider.layer === 2) return selection.regionIds.length > 0;
     
     // 三层：需要选中至少一个区域和复杂度
-    if (provider.layer === 3) return selection.regionIds.length > 0 && selection.complexityId !== "";
+    if (provider.layer === 3) return selection.regionIds.length > 0 && selection.complexityIds.length > 0;
     
     return false;
   };
@@ -72,7 +72,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
   // 检查复杂度是否被选中
   const isComplexitySelected = (providerId: string, complexityId: string) => {
     const selection = selectedMCPs.find(s => s.providerId === providerId);
-    return selection?.complexityId === complexityId;
+    return selection?.complexityIds.includes(complexityId) || false;
   };
 
   // 处理提供商选择（一层多选，二三层只是展开/折叠）
@@ -88,7 +88,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
         newSelections.push({
           providerId,
           regionIds: [],
-          complexityId: ""
+          complexityIds: []
         });
       }
       onSelect(newSelections);
@@ -119,25 +119,30 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
       newSelections = [...selectedMCPs, {
         providerId,
         regionIds: [regionId],
-        complexityId: ""
+        complexityIds: []
       }];
     }
     
     onSelect(newSelections);
   };
 
-  // 处理复杂度选择（单选）
+  // 处理复杂度选择（多选）
   const handleToggleComplexity = (providerId: string, complexityId: string) => {
     const existingSelection = selectedMCPs.find(s => s.providerId === providerId);
     
     let newSelections;
     if (existingSelection) {
-      // 已有选择，更新complexityId
+      // 已有选择，更新complexityIds
       newSelections = selectedMCPs.map(s => {
         if (s.providerId !== providerId) return s;
+        
+        const newComplexityIds = s.complexityIds.includes(complexityId)
+          ? s.complexityIds.filter(id => id !== complexityId)
+          : [...s.complexityIds, complexityId];
+        
         return { 
           ...s, 
-          complexityId: complexityId === s.complexityId ? "" : complexityId 
+          complexityIds: newComplexityIds 
         };
       });
     } else {
@@ -145,7 +150,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
       newSelections = [...selectedMCPs, {
         providerId,
         regionIds: [],
-        complexityId: complexityId
+        complexityIds: [complexityId]
       }];
     }
     
@@ -175,7 +180,13 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
 
     // 三层：使用 providerId-regionId-complexityId
     if (provider.layer === 3) {
-      return selection.regionIds.map(regionId => `${selection.providerId}-${regionId}-${selection.complexityId}`);
+      const services: string[] = [];
+      selection.regionIds.forEach(regionId => {
+        selection.complexityIds.forEach(complexityId => {
+          services.push(`${selection.providerId}-${regionId}-${complexityId}`);
+        });
+      });
+      return services;
     }
 
     return [];
@@ -280,11 +291,11 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                 </div>
               )}
 
-              {/* 三层模式显示复杂度（单选） */}
+              {/* 三层模式显示复杂度（多选） */}
               {canExpand && expandedProviders.has(provider.id) && provider.layer === 3 && (
                 <div className="border-t bg-muted/20 p-3">
                   <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-3">
-                    <span>复杂度（单选）:</span>
+                    <span>复杂度（多选）:</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {provider.complexityLevels?.map((level) => {
@@ -325,7 +336,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
             {selectedMCPs.map((selection) => {
               const provider = providers.find(p => p.id === selection.providerId);
               const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
-              const selectedComplexity = provider?.complexityLevels?.find(c => c.id === selection.complexityId);
+              const selectedComplexities = provider?.complexityLevels?.filter(c => selection.complexityIds.includes(c.id)) || [];
               const serviceIds = getServiceIds(selection);
               
               return (
@@ -333,7 +344,7 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{provider?.name}</span>
                     <Badge variant="outline" className="text-xs">
-                      {selectedComplexity?.name || (provider?.layer === 2 ? "区域模式" : "单层模式")}
+                      {selectedRegions.length > 0 ? `${selectedRegions.length} 个区域` : "区域模式"}
                     </Badge>
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
@@ -343,12 +354,18 @@ export const MCPSelector = ({ onSelect, selectedMCPs, providers }: MCPSelectorPr
                       </Badge>
                     ))}
                   </div>
-                  {selectedRegions.length > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      共 {selectedRegions.length} 个区域
-                      {selectedComplexity && ` 使用 ${selectedComplexity.name} 模式`}
+                  {selectedComplexities.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {selectedComplexities.map((complexity) => (
+                        <Badge key={complexity.id} variant="outline" className="text-xs">
+                          {complexity.name}
+                        </Badge>
+                      ))}
                     </div>
                   )}
+                  <div className="text-xs text-muted-foreground">
+                    共 {selectedRegions.length} 个区域，{selectedComplexities.length} 个复杂度
+                  </div>
                   {serviceIds.length > 0 && (
                     <div className="mt-2 text-xs text-muted-foreground">
                       服务ID: {serviceIds.join(", ")}
