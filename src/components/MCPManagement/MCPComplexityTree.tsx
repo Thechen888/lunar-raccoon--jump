@@ -280,7 +280,6 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
       return {
         ...provider,
         regions: provider.regions.map(region => {
-          if (region.id !== editingComplexity.regionId) return region;
           return {
             ...region,
             complexities: [...region.complexities, {
@@ -294,7 +293,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     });
     onProvidersChange(newProviders);
     setEditingComplexity(null);
-    toast.success("复杂度级别已添加");
+    toast.success("复杂度级别已添加到所有区域");
   };
 
   const handleEditComplexity = (data: { id: string; name: string; description?: string }) => {
@@ -607,7 +606,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                     }}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    添加复杂度级别
+                    添加复杂度级别（将添加到所有区域）
                   </Button>
                 )}
 
