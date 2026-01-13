@@ -303,7 +303,6 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
       return {
         ...provider,
         regions: provider.regions.map(region => {
-          if (region.id !== editingComplexity.regionId) return region;
           return {
             ...region,
             complexities: region.complexities.map(complexity =>
@@ -321,13 +320,12 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   };
 
   const handleDeleteComplexity = () => {
-    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.regionId || !deleteTarget.complexityId) return;
+    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.complexityId) return;
     const newProviders = providers.map(provider => {
       if (provider.id !== deleteTarget.providerId) return provider;
       return {
         ...provider,
         regions: provider.regions.map(region => {
-          if (region.id !== deleteTarget.regionId) return region;
           return {
             ...region,
             complexities: region.complexities.filter(c => c.id !== deleteTarget.complexityId)
@@ -338,7 +336,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     onProvidersChange(newProviders);
     setDeleteDialogOpen(false);
     setDeleteTarget(null);
-    toast.success("复杂度级别已删除");
+    toast.success("复杂度级别已从所有区域删除");
   };
 
   const handleDelete = () => {
@@ -507,7 +505,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                       {/* 三层模式显示复杂度 */}
                       {regionCanExpand && expandedRegions.has(region.id) && (
                         <div className="space-y-2 mt-2">
-                          {region.complexities.map((complexity) => (
+                          {region.complexities.map((complexity, index) => (
                             <div
                               key={complexity.id}
                               className={`p-3 border rounded-lg transition-all ${
@@ -537,37 +535,24 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                                       </code>
                                     </div>
                                   )}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingComplexity({
-                                        providerId: provider.id,
-                                        regionId: region.id,
-                                        complexity
-                                      });
-                                      setComplexityMode("edit");
-                                      setComplexityDialogOpen(true);
-                                    }}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setDeleteTarget({
-                                        type: "complexity",
-                                        providerId: provider.id,
-                                        regionId: region.id,
-                                        complexityId: complexity.id,
-                                        name: complexity.name
-                                      });
-                                      setDeleteDialogOpen(true);
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
+                                  {/* 删除按钮只在第一个区域的第一个复杂度显示 */}
+                                  {provider.regions.indexOf(region) === 0 && index === 0 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setDeleteTarget({
+                                          type: "complexity",
+                                          providerId: provider.id,
+                                          complexityId: complexity.id,
+                                          name: complexity.name
+                                        });
+                                        setDeleteDialogOpen(true);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  )}
                                   {/* 三层结构在复杂度级别显示配置按钮 */}
                                   {provider.layer === 3 && (
                                     <Button
@@ -713,6 +698,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
               确定要删除 "{deleteTarget?.name}" 吗？此操作不可撤销。
               {deleteTarget?.type === "provider" && " 删除服务提供商将同时删除其所有区域和复杂度级别。"}
               {deleteTarget?.type === "region" && " 删除区域将同时删除其所有复杂度级别。"}
+              {deleteTarget?.type === "complexity" && " 删除复杂度将从所有区域中删除。"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
