@@ -117,38 +117,6 @@ export const ModelForm = ({ initialData, onSave }: ModelFormProps) => {
             默认值为1，值越小，AI生成的内容越单调，也越容易理解；值越大，AI回复的词汇范围越大，越多样化。
           </p>
         </div>
-        
-        {/* 频率惩罚 */}
-        <div>
-          <div className="flex items-center space-x-1">
-            <Label>频率惩罚</Label>
-            <Info className="h-3.5 w-3.5 text-muted-foreground" />
-          </div>
-          <Input 
-            type="number" 
-            step="0.1" 
-            min="-2" 
-            max="2" 
-            value={formData.frequencyPenalty} 
-            onChange={(e) => setFormData({ ...formData, frequencyPenalty: parseFloat(e.target.value) })} 
-          />
-        </div>
-        
-        {/* 存在惩罚 */}
-        <div>
-          <div className="flex items-center space-x-1">
-            <Label>存在惩罚</Label>
-            <Info className="h-3.5 w-3.5 text-muted-foreground" />
-          </div>
-          <Input 
-            type="number" 
-            step="0.1" 
-            min="-2" 
-            max="2" 
-            value={formData.presencePenalty} 
-            onChange={(e) => setFormData({ ...formData, presencePenalty: parseFloat(e.target.value) })} 
-          />
-        </div>
       </div>
       <div className="flex space-x-2 pt-4 border-t">
         <Button onClick={() => onSave(formData)}>保存</Button>
