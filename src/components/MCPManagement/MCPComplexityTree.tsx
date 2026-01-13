@@ -584,29 +584,32 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                               </div>
                             </div>
                           ))}
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full mt-2"
-                            onClick={() => {
-                              setEditingComplexity({
-                                providerId: provider.id,
-                                regionId: region.id,
-                                complexity: { id: "", name: "", description: "" }
-                              });
-                              setComplexityMode("create");
-                              setComplexityDialogOpen(true);
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            添加复杂度级别
-                          </Button>
                         </div>
                       )}
                     </div>
                   );
                 })}
+
+                {/* 三层结构：在所有区域后添加一个添加复杂度级别的按钮 */}
+                {provider.layer === 3 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={() => {
+                      setEditingComplexity({
+                        providerId: provider.id,
+                        regionId: provider.regions[0]?.id || "",
+                        complexity: { id: "", name: "", description: "" }
+                      });
+                      setComplexityMode("create");
+                      setComplexityDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    添加复杂度级别
+                  </Button>
+                )}
 
                 <Button
                   variant="outline"
