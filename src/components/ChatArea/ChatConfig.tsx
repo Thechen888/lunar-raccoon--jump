@@ -65,7 +65,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange }: Chat
       <div className="space-y-2">
         <Label className="text-xs font-medium">选择模型</Label>
         <Select value={modelId} onValueChange={handleModelChange}>
-          <SelectTrigger className="h-8 text-sm">
+          <SelectTrigger className="h-8 text-sm overflow-hidden">
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px]">
@@ -85,7 +85,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange }: Chat
       <div className="space-y-2">
         <Label className="text-xs font-medium">选择文档集（可选）</Label>
         <Select value={documentCollectionId} onValueChange={handleDocumentCollectionChange}>
-          <SelectTrigger className="h-8 text-sm">
+          <SelectTrigger className="h-8 text-sm overflow-hidden">
             <SelectValue placeholder="选择文档集" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px]">
