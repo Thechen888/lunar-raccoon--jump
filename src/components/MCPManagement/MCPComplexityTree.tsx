@@ -8,6 +8,7 @@ import { MCPProviderConfig, MCPServiceConfig } from "./MCPProviderConfig";
 import { EditProviderDialog } from "./EditProviderDialog";
 import { EditRegionDialog } from "./EditRegionDialog";
 import { EditComplexityDialog } from "./EditComplexityDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 export interface MCPService {
@@ -86,9 +87,11 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     name: string;
   } | null>(null);
 
-  // 统一删除复杂度对话框状态
-  const [complexityDeleteDialogOpen, setComplexityDeleteDialogOpen] = useState(false);
+  // 选择删除复杂度的对话框状态
+  const [selectComplexityDialogOpen, setSelectComplexityDialogOpen] = useState(false);
   const [deletingProviderId, setDeletingProviderId] = useState<string | null>(null);
+  const [selectedComplexitiesForDelete, setSelectedComplexitiesForDelete] = useState<Set<string>>(new Set());
+  const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
 
   // 计算提供商的配置状态
   const getProviderConfigStatus = (provider: MCPProvider) => {
@@ -324,44 +327,34 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     toast.success("复杂度级别已更新");
   };
 
-  // 统一删除复杂度
-  const handleDeleteAllComplexities = () => {
-    if (!deletingProviderId) return;
+  // 打开选择复杂度对话框
+  const handleOpenSelectComplexityDialog = (providerId: string) => {
+    setDeletingProviderId(providerId);
+    setSelectedComplexitiesForDelete(new Set());
+    setSelectComplexityDialogOpen(true);
+  };
+
+  // 确认删除选中的复杂度
+  const handleConfirmDeleteComplexities = () => {
+    if (!deletingProviderId || selectedComplexitiesForDelete.size === 0) return;
+
     const newProviders = providers.map(provider => {
       if (provider.id !== deletingProviderId) return provider;
       return {
         ...provider,
         regions: provider.regions.map(region => ({
           ...region,
-          complexities: []
+          complexities: region.complexities.filter(c => !selectedComplexitiesForDelete.has(c.id))
         }))
       };
     });
-    onProvidersChange(newProviders);
-    setComplexityDeleteDialogOpen(false);
-    setDeletingProviderId(null);
-    toast.success("所有复杂度级别已删除");
-  };
 
-  const handleDeleteComplexity = () => {
-    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.regionId || !deleteTarget.complexityId) return;
-    const newProviders = providers.map(provider => {
-      if (provider.id !== deleteTarget.providerId) return provider;
-      return {
-        ...provider,
-        regions: provider.regions.map(region => {
-          if (region.id !== deleteTarget.regionId) return region;
-          return {
-            ...region,
-            complexities: region.complexities.filter(c => c.id !== deleteTarget.complexityId)
-          };
-        })
-      };
-    });
     onProvidersChange(newProviders);
-    setDeleteDialogOpen(false);
-    setDeleteTarget(null);
-    toast.success("复杂度级别已删除");
+    setSelectComplexityDialogOpen(false);
+    setConfirmDeleteDialogOpen(false);
+    setDeletingProviderId(null);
+    setSelectedComplexitiesForDelete(new Set());
+    toast.success(`已删除 ${selectedComplexitiesForDelete.size} 个复杂度级别`);
   };
 
   const handleDelete = () => {
@@ -374,7 +367,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         handleDeleteRegion();
         break;
       case "complexity":
-        handleDeleteComplexity();
+        // 不再处理单个复杂度删除
         break;
     }
   };
@@ -386,6 +379,12 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   const getLayerBadge = (layer: number) => {
     const labels = { 1: "一层", 2: "二层", 3: "三层" };
     return labels[layer as keyof typeof labels] || "三层";
+  };
+
+  // 获取提供商的所有复杂度（从第一个区域获取）
+  const getProviderComplexities = (provider: MCPProvider) => {
+    if (provider.layer !== 3 || provider.regions.length === 0) return [];
+    return provider.regions[0].complexities;
   };
 
   return (
@@ -447,10 +446,9 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeletingProviderId(provider.id);
-                        setComplexityDeleteDialogOpen(true);
+                        handleOpenSelectComplexityDialog(provider.id);
                       }}
-                      title="统一删除所有复杂度"
+                      title="统一删除复杂度"
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -769,27 +767,96 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         </DialogContent>
       </Dialog>
 
-      {/* 统一删除复杂度对话框 */}
-      <Dialog open={complexityDeleteDialogOpen} onOpenChange={setComplexityDeleteDialogOpen}>
+      {/* 选择要删除的复杂度对话框 */}
+      <Dialog open={selectComplexityDialogOpen} onOpenChange={setSelectComplexityDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>选择要删除的复杂度</DialogTitle>
+            <DialogDescription>
+              请选择要从该提供商下所有区域中删除的复杂度级别
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {(() => {
+              const provider = providers.find(p => p.id === deletingProviderId);
+              const complexities = getProviderComplexities(provider!);
+              
+              if (complexities.length === 0) {
+                return <p className="text-sm text-muted-foreground">暂无复杂度级别</p>;
+              }
+
+              return complexities.map((complexity) => (
+                <div
+                  key={complexity.id}
+                  className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-muted/50"
+                >
+                  <Checkbox
+                    id={`delete-complexity-${complexity.id}`}
+                    checked={selectedComplexitiesForDelete.has(complexity.id)}
+                    onCheckedChange={(checked) => {
+                      const newSet = new Set(selectedComplexitiesForDelete);
+                      if (checked) {
+                        newSet.add(complexity.id);
+                      } else {
+                        newSet.delete(complexity.id);
+                      }
+                      setSelectedComplexitiesForDelete(newSet);
+                    }}
+                  />
+                  <label
+                    htmlFor={`delete-complexity-${complexity.id}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    <div className="font-medium text-sm">{complexity.name}</div>
+                    {complexity.description && (
+                      <div className="text-xs text-muted-foreground">{complexity.description}</div>
+                    )}
+                  </label>
+                </div>
+              ));
+            })()}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setSelectComplexityDialogOpen(false);
+              setSelectedComplexitiesForDelete(new Set());
+            }}>
+              取消
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectComplexityDialogOpen(false);
+                setConfirmDeleteDialogOpen(true);
+              }}
+              disabled={selectedComplexitiesForDelete.size === 0}
+            >
+              下一步
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 确认删除复杂度对话框 */}
+      <Dialog open={confirmDeleteDialogOpen} onOpenChange={setConfirmDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span>统一删除复杂度</span>
+              <span>确认删除复杂度</span>
             </DialogTitle>
             <DialogDescription>
-              确定要删除该提供商下所有区域的所有复杂度级别吗？此操作不可撤销。
-              复杂度级别的服务配置也将一并删除。
+              确定要从该提供商下所有区域中删除选中的 {selectedComplexitiesForDelete.size} 个复杂度级别吗？
+              此操作不可撤销，复杂度级别的服务配置也将一并删除。
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => {
-              setComplexityDeleteDialogOpen(false);
-              setDeletingProviderId(null);
+              setConfirmDeleteDialogOpen(false);
+              setSelectComplexityDialogOpen(true);
             }}>
-              取消
+              返回
             </Button>
-            <Button variant="destructive" onClick={handleDeleteAllComplexities}>
+            <Button variant="destructive" onClick={handleConfirmDeleteComplexities}>
               确认删除
             </Button>
           </DialogFooter>
