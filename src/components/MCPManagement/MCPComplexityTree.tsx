@@ -334,17 +334,21 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     setSelectComplexityDialogOpen(true);
   };
 
-  // 确认删除选中的复杂度
+  // 确认删除选中的复杂度 - 按名称删除所有区域中的复杂度
   const handleConfirmDeleteComplexities = () => {
     if (!deletingProviderId || selectedComplexitiesForDelete.size === 0) return;
 
     const newProviders = providers.map(provider => {
       if (provider.id !== deletingProviderId) return provider;
+      
+      // 获取要删除的复杂度名称列表
+      const complexityNamesToDelete = selectedComplexitiesForDelete;
+      
       return {
         ...provider,
         regions: provider.regions.map(region => ({
           ...region,
-          complexities: region.complexities.filter(c => !selectedComplexitiesForDelete.has(c.id))
+          complexities: region.complexities.filter(c => !complexityNamesToDelete.has(c.name))
         }))
       };
     });
@@ -792,13 +796,13 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                 >
                   <Checkbox
                     id={`delete-complexity-${complexity.id}`}
-                    checked={selectedComplexitiesForDelete.has(complexity.id)}
+                    checked={selectedComplexitiesForDelete.has(complexity.name)}
                     onCheckedChange={(checked) => {
                       const newSet = new Set(selectedComplexitiesForDelete);
                       if (checked) {
-                        newSet.add(complexity.id);
+                        newSet.add(complexity.name);
                       } else {
-                        newSet.delete(complexity.id);
+                        newSet.delete(complexity.name);
                       }
                       setSelectedComplexitiesForDelete(newSet);
                     }}
