@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers, Eraser } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -454,7 +454,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                       }}
                       title="统一删除复杂度"
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Eraser className="h-4 w-4 text-destructive" />
                     </Button>
                   )}
                   <Button variant="ghost" size="sm" onClick={(e) => {
