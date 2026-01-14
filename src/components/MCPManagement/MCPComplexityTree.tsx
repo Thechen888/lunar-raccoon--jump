@@ -321,14 +321,13 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   };
 
   const handleDeleteComplexity = () => {
-    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.complexityId) return;
-    
+    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.regionId || !deleteTarget.complexityId) return;
     const newProviders = providers.map(provider => {
       if (provider.id !== deleteTarget.providerId) return provider;
-      
       return {
         ...provider,
         regions: provider.regions.map(region => {
+          if (region.id !== deleteTarget.regionId) return region;
           return {
             ...region,
             complexities: region.complexities.filter(c => c.id !== deleteTarget.complexityId)
@@ -336,11 +335,10 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         })
       };
     });
-    
     onProvidersChange(newProviders);
     setDeleteDialogOpen(false);
     setDeleteTarget(null);
-    toast.success("复杂度级别已从所有区域中删除");
+    toast.success("复杂度级别已删除");
   };
 
   const handleDelete = () => {
@@ -715,7 +713,6 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
               确定要删除 "{deleteTarget?.name}" 吗？此操作不可撤销。
               {deleteTarget?.type === "provider" && " 删除服务提供商将同时删除其所有区域和复杂度级别。"}
               {deleteTarget?.type === "region" && " 删除区域将同时删除其所有复杂度级别。"}
-              {deleteTarget?.type === "complexity" && " 删除复杂度级别将从该服务提供商的所有区域中删除。"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
