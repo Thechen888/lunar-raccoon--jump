@@ -579,40 +579,6 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                                       </code>
                                     </div>
                                   )}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingComplexity({
-                                        providerId: provider.id,
-                                        regionId: region.id,
-                                        complexity
-                                      });
-                                      setComplexityMode("edit");
-                                      setComplexityDialogOpen(true);
-                                    }}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  {/* 三层结构不显示复杂度的删除图标 */}
-                                  {provider.layer !== 3 && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setDeleteTarget({
-                                          type: "complexity",
-                                          providerId: provider.id,
-                                          regionId: region.id,
-                                          complexityId: complexity.id,
-                                          name: complexity.name
-                                        });
-                                        setDeleteDialogOpen(true);
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  )}
                                   {/* 三层结构在复杂度级别显示配置按钮 */}
                                   {provider.layer === 3 && (
                                     <Button
