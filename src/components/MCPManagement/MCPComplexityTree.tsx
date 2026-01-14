@@ -303,7 +303,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
       return {
         ...provider,
         regions: provider.regions.map(region => {
-          if (region.id !== editingComplexity.regionId) return region;
+          // 编辑复杂度时，修改所有区域中该ID的复杂度
           return {
             ...region,
             complexities: region.complexities.map(complexity =>
@@ -321,18 +321,16 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   };
 
   const handleDeleteComplexity = () => {
-    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.regionId || !deleteTarget.complexityId) return;
+    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.complexityId) return;
     const newProviders = providers.map(provider => {
       if (provider.id !== deleteTarget.providerId) return provider;
+      // 删除该提供商下所有区域中的该复杂度
       return {
         ...provider,
-        regions: provider.regions.map(region => {
-          if (region.id !== deleteTarget.regionId) return region;
-          return {
-            ...region,
-            complexities: region.complexities.filter(c => c.id !== deleteTarget.complexityId)
-          };
-        })
+        regions: provider.regions.map(region => ({
+          ...region,
+          complexities: region.complexities.filter(c => c.id !== deleteTarget.complexityId)
+        }))
       };
     });
     onProvidersChange(newProviders);
@@ -559,7 +557,6 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                                       setDeleteTarget({
                                         type: "complexity",
                                         providerId: provider.id,
-                                        regionId: region.id,
                                         complexityId: complexity.id,
                                         name: complexity.name
                                       });
@@ -713,6 +710,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
               确定要删除 "{deleteTarget?.name}" 吗？此操作不可撤销。
               {deleteTarget?.type === "provider" && " 删除服务提供商将同时删除其所有区域和复杂度级别。"}
               {deleteTarget?.type === "region" && " 删除区域将同时删除其所有复杂度级别。"}
+              {deleteTarget?.type === "complexity" && " 删除复杂度级别将从该提供商的所有区域中删除。"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
