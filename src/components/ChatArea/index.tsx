@@ -156,11 +156,11 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
             <ScrollArea className="h-full px-4 pb-4">
               <Accordion type="multiple" defaultValue={["chat-config", "mcp-config"]} className="space-y-3">
                 {/* 对话配置 */}
-                <AccordionItem value="chat-config" className="border rounded-lg px-4">
-                  <AccordionTrigger className="py-3 hover:no-underline">
+                <AccordionItem value="chat-config" className="border rounded-lg">
+                  <AccordionTrigger className="py-3 px-4 hover:no-underline">
                     <span className="text-sm font-medium">对话配置</span>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-4">
+                  <AccordionContent className="pb-4 px-4">
                     <ChatConfig
                       models={availableModels}
                       documentCollections={availableDocumentCollections}
@@ -170,11 +170,11 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                 </AccordionItem>
 
                 {/* MCP 选择 */}
-                <AccordionItem value="mcp-config" className="border rounded-lg px-4">
-                  <AccordionTrigger className="py-3 hover:no-underline">
+                <AccordionItem value="mcp-config" className="border rounded-lg">
+                  <AccordionTrigger className="py-3 px-4 hover:no-underline">
                     <span className="text-sm font-medium">MCP 选择</span>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-4">
+                  <AccordionContent className="pb-4 px-4">
                     <MCPSelector
                       onSelect={onMCPSelect}
                       selectedMCPs={selectedMCPs}
