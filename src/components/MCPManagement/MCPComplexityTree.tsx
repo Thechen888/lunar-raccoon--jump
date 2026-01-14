@@ -322,11 +322,12 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
 
   const handleDeleteComplexity = () => {
     if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.complexityId) return;
+    
     const newProviders = providers.map(provider => {
       if (provider.id !== deleteTarget.providerId) return provider;
+      
       return {
         ...provider,
-        // 遍历所有区域，删除指定id的复杂度（批量删除）
         regions: provider.regions.map(region => {
           return {
             ...region,
@@ -335,6 +336,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         })
       };
     });
+    
     onProvidersChange(newProviders);
     setDeleteDialogOpen(false);
     setDeleteTarget(null);
