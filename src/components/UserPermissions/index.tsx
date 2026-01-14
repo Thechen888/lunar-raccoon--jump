@@ -15,6 +15,7 @@ import { UserList } from "./UserList";
 import { SystemRoleCard } from "./SystemRoleCard";
 import { DocumentRoleCard } from "./DocumentRoleCard";
 import { ModelRoleCard } from "./ModelRoleCard";
+import { MCPRoleCard } from "./MCPRoleCard";
 
 // 系统权限
 const systemPermissions = [
@@ -35,6 +36,12 @@ const modelPermissions = [
   { id: "model:read", name: "查看模型", description: "查看模型配置" },
   { id: "model:manage", name: "管理模型", description: "添加、编辑、删除模型" },
   { id: "model:use", name: "使用模型", description: "使用模型进行对话" }
+];
+
+// MCP权限
+const mcpPermissions = [
+  { id: "mcp:manage", name: "管理MCP", description: "添加、编辑、删除MCP服务" },
+  { id: "mcp:view", name: "查看MCP", description: "查看MCP服务配置" }
 ];
 
 interface Role {
@@ -67,7 +74,12 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
       description: "拥有所有权限的系统管理员",
       isDefault: false,
       isSystem: true,
-      permissions: [...systemPermissions.map((p) => p.id), ...documentPermissions.map((p) => p.id), ...modelPermissions.map((p) => p.id)]
+      permissions: [
+        ...systemPermissions.map((p) => p.id),
+        ...documentPermissions.map((p) => p.id),
+        ...modelPermissions.map((p) => p.id),
+        ...mcpPermissions.map((p) => p.id) // 管理员拥有所有MCP权限
+      ]
     },
     {
       id: "role-user",
@@ -75,7 +87,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
       description: "默认用户角色，可以查看和使用资源",
       isDefault: true,
       isSystem: true,
-      permissions: ["docs:read", "docs:upload", "model:read", "model:use"]
+      permissions: ["docs:read", "docs:upload", "model:read", "model:use", "mcp:view"] // 普通用户只有查看MCP权限
     },
     {
       id: "role-viewer",
@@ -83,7 +95,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
       description: "只读权限，无法发起对话或修改内容",
       isDefault: false,
       isSystem: true,
-      permissions: ["docs:read", "model:read"]
+      permissions: ["docs:read", "model:read", "mcp:view"] // 查看者只有查看MCP权限
     }
   ]);
 
@@ -294,7 +306,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                     <Shield className="h-5 w-5" />
                     <span>角色管理</span>
                   </CardTitle>
-                  <CardDescription>管理系统、文档、模型权限</CardDescription>
+                  <CardDescription>管理系统、文档、模型、MCP权限</CardDescription>
                 </div>
                 <Dialog open={isAddRoleDialogOpen} onOpenChange={setIsAddRoleDialogOpen}>
                   <DialogTrigger asChild>
@@ -334,6 +346,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                   <TabsTrigger value="system">系统</TabsTrigger>
                   <TabsTrigger value="document">文档</TabsTrigger>
                   <TabsTrigger value="model">模型</TabsTrigger>
+                  <TabsTrigger value="mcp">MCP</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="system" className="space-y-4">
@@ -373,6 +386,21 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                         key={role.id}
                         role={role}
                         modelPermissions={modelPermissions}
+                        onEdit={handleEditRole}
+                        onDelete={handleDeleteRole}
+                        onTogglePermission={handleTogglePermission}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="mcp" className="space-y-4">
+                  <div className="space-y-4">
+                    {roles.map((role) => (
+                      <MCPRoleCard
+                        key={role.id}
+                        role={role}
+                        mcpPermissions={mcpPermissions}
                         onEdit={handleEditRole}
                         onDelete={handleDeleteRole}
                         onTogglePermission={handleTogglePermission}
