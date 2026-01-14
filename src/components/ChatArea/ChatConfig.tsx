@@ -68,7 +68,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange }: Chat
           <SelectTrigger className="h-8 text-sm">
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[200px]">
             {models.map((model) => (
               <SelectItem key={model.id} value={model.id} className="text-sm">
                 <div className="flex items-center space-x-2">
@@ -88,7 +88,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange }: Chat
           <SelectTrigger className="h-8 text-sm">
             <SelectValue placeholder="选择文档集" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[200px]">
             {documentCollections.map((collection) => (
               <SelectItem key={collection.id} value={collection.id} className="text-sm">
                 <div className="flex items-center justify-between w-full pr-8">
