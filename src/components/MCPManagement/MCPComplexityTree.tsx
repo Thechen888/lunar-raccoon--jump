@@ -382,8 +382,8 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   };
 
   // 获取提供商的所有复杂度（从第一个区域获取）
-  const getProviderComplexities = (provider: MCPProvider) => {
-    if (provider.layer !== 3 || provider.regions.length === 0) return [];
+  const getProviderComplexities = (provider?: MCPProvider): MCPComplexity[] => {
+    if (!provider || provider.layer !== 3 || provider.regions.length === 0) return [];
     return provider.regions[0].complexities;
   };
 
@@ -779,7 +779,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {(() => {
               const provider = providers.find(p => p.id === deletingProviderId);
-              const complexities = getProviderComplexities(provider!);
+              const complexities = getProviderComplexities(provider);
               
               if (complexities.length === 0) {
                 return <p className="text-sm text-muted-foreground">暂无复杂度级别</p>;
