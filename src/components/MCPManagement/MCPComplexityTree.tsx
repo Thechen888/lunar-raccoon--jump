@@ -1,39 +1,40 @@
+import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Globe, Zap, Code, MessageSquare, ChevronRight, ChevronDown, Plus, Settings, Trash2, Layers, Server } from "lucide-react";
-import { toast } from "sonner";
-import { MCPProviderConfig } from "./MCPProviderConfig";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { MCPProviderConfig, MCPServiceConfig } from "./MCPProviderConfig";
 import { EditProviderDialog } from "./EditProviderDialog";
 import { EditRegionDialog } from "./EditRegionDialog";
 import { EditComplexityDialog } from "./EditComplexityDialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
-export interface MCPServiceConfig {
+export interface MCPService {
+  id: string;
   name: string;
   description: string;
   url: string;
   headers?: string;
-  tools?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    method: string;
-    path: string;
-    enabled: boolean;
-  }>;
-  prompts?: Array<{
-    id: string;
-    name: string;
-    content: string;
-  }>;
+  status: "active" | "inactive";
+  createdAt: string;
+  tools?: any[];
+  prompts?: any[];
+}
+
+export interface MCPComplexity {
+  id: string;
+  name: string;
+  description?: string;
+  service?: MCPServiceConfig;
+}
+
+export interface MCPRegion {
+  id: string;
+  name: string;
+  complexities: MCPComplexity[];
+  service?: MCPServiceConfig;
 }
 
 export interface MCPProvider {
@@ -44,53 +45,88 @@ export interface MCPProvider {
   service?: MCPServiceConfig;
 }
 
-export interface MCPRegion {
-  id: string;
-  name: string;
-  complexities?: MCPComplexity[];
-  service?: MCPServiceConfig;
-}
-
-export interface MCPComplexity {
-  id: string;
-  name: string;
-  description?: string;
-  service?: MCPServiceConfig;
-}
-
 interface MCPComplexityTreeProps {
   providers: MCPProvider[];
   onProvidersChange: (providers: MCPProvider[]) => void;
 }
 
 export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexityTreeProps) => {
-  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set(["pangu", "hub"]));
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedComplexity, setSelectedComplexity] = useState<string | null>(null);
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [configuringComplexity, setConfiguringComplexity] = useState<{
+    providerId: string;
+    regionId?: string;
+    complexityId?: string;
+    configTarget: "provider" | "region" | "complexity";
+  } | null>(null);
 
-  // 对话框状态
-  const [isProviderDialogOpen, setIsProviderDialogOpen] = useState(false);
-  const [isRegionDialogOpen, setIsRegionDialogOpen] = useState(false);
-  const [isComplexityDialogOpen, setIsComplexityDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
+  const [providerDialogOpen, setProviderDialogOpen] = useState(false);
   const [editingProvider, setEditingProvider] = useState<MCPProvider | null>(null);
+  const [providerMode, setProviderMode] = useState<"create" | "edit">("create");
+
+  const [regionDialogOpen, setRegionDialogOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState<{ providerId: string; region: MCPRegion } | null>(null);
-  const [editingComplexity, setEditingComplexity] = useState<{ providerId: string; regionId: string; complexity: MCPComplexity } | null>(null);
+  const [regionMode, setRegionMode] = useState<"create" | "edit">("create");
 
-  // 删除确认对话框
-  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "provider" | "region" | "complexity"; id: string } | null>(null);
+  const [complexityDialogOpen, setComplexityDialogOpen] = useState(false);
+  const [editingComplexity, setEditingComplexity] = useState<{
+    providerId: string;
+    regionId: string;
+    complexity: MCPComplexity;
+  } | null>(null);
+  const [complexityMode, setComplexityMode] = useState<"create" | "edit">("create");
 
-  // 配置服务对话框
-  const [configServiceTarget, setConfigServiceTarget] = useState<{ providerId: string; regionId?: string; complexityId?: string } | null>(null);
-  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "provider" | "region" | "complexity";
+    providerId?: string;
+    regionId?: string;
+    complexityId?: string;
+    name: string;
+  } | null>(null);
 
-  // 选择复杂度删除对话框
-  const [isSelectComplexityDialogOpen, setIsSelectComplexityDialogOpen] = useState(false);
-  const [deleteProviderId, setDeleteProviderId] = useState<string>("");
+  // 选择删除复杂度的对话框状态
+  const [selectComplexityDialogOpen, setSelectComplexityDialogOpen] = useState(false);
+  const [deletingProviderId, setDeletingProviderId] = useState<string | null>(null);
   const [selectedComplexitiesForDelete, setSelectedComplexitiesForDelete] = useState<Set<string>>(new Set());
+  const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
 
-  // Provider 相关操作
-  const handleToggleProvider = (providerId: string) => {
+  // 计算提供商的配置状态
+  const getProviderConfigStatus = (provider: MCPProvider) => {
+    if (provider.layer === 1) {
+      // 一层：直接检查提供商的服务
+      return { allConfigured: !!provider.service, unconfiguredCount: provider.service ? 0 : 1 };
+    }
+    
+    if (provider.layer === 2) {
+      // 二层：检查所有区域的服务
+      let unconfiguredCount = 0;
+      provider.regions.forEach(region => {
+        if (!region.service) unconfiguredCount++;
+      });
+      return { allConfigured: unconfiguredCount === 0, unconfiguredCount };
+    }
+    
+    if (provider.layer === 3) {
+      // 三层：检查所有复杂度的服务
+      let unconfiguredCount = 0;
+      provider.regions.forEach(region => {
+        region.complexities.forEach(complexity => {
+          if (!complexity.service) unconfiguredCount++;
+        });
+      });
+      return { allConfigured: unconfiguredCount === 0, unconfiguredCount };
+    }
+    
+    return { allConfigured: false, unconfiguredCount: 0 };
+  };
+
+  const toggleProvider = (providerId: string) => {
+    const provider = providers.find(p => p.id === providerId);
+    if (!provider || provider.layer === 1) return; // 一层不展开
+    
     const newExpanded = new Set(expandedProviders);
     if (newExpanded.has(providerId)) {
       newExpanded.delete(providerId);
@@ -100,738 +136,732 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     setExpandedProviders(newExpanded);
   };
 
-  const handleAddProvider = () => {
-    setDialogMode("create");
-    setEditingProvider(null);
-    setIsProviderDialogOpen(true);
-  };
-
-  const handleEditProvider = (provider: MCPProvider) => {
-    setDialogMode("edit");
-    setEditingProvider(provider);
-    setIsProviderDialogOpen(true);
-  };
-
-  const handleDeleteProvider = (providerId: string) => {
-    setDeleteConfirm({ type: "provider", id: providerId });
-  };
-
-  const handleConfirmDeleteProvider = () => {
-    if (!deleteConfirm) return;
-    const newProviders = providers.filter(p => p.id !== deleteConfirm.id);
-    onProvidersChange(newProviders);
-    setDeleteConfirm(null);
-    toast.success("提供商已删除");
-  };
-
-  const handleConfigProviderService = (providerId: string) => {
-    const provider = providers.find(p => p.id === providerId);
-    if (provider?.layer === 1) {
-      setConfigServiceTarget({ providerId });
-      setIsConfigDialogOpen(true);
-    } else {
-      toast.error("仅一层模式可以在提供商上配置服务");
-    }
-  };
-
-  // Region 相关操作
-  const handleToggleRegion = (providerId: string, regionId: string) => {
-    const key = `${providerId}-${regionId}`;
+  const toggleRegion = (regionId: string) => {
     const newExpanded = new Set(expandedRegions);
-    if (newExpanded.has(key)) {
-      newExpanded.delete(key);
+    if (newExpanded.has(regionId)) {
+      newExpanded.delete(regionId);
     } else {
-      newExpanded.add(key);
+      newExpanded.add(regionId);
     }
     setExpandedRegions(newExpanded);
   };
 
-  const handleAddRegion = (providerId: string) => {
-    setDialogMode("create");
-    setEditingRegion({ providerId, region: { id: "", name: "" } });
-    setIsRegionDialogOpen(true);
+  const handleSelectComplexity = (providerId: string, regionId: string, complexityId: string) => {
+    setSelectedComplexity(`${providerId}-${regionId}-${complexityId}`);
   };
 
-  const handleEditRegion = (providerId: string, region: MCPRegion) => {
-    setDialogMode("edit");
-    setEditingRegion({ providerId, region });
-    setIsRegionDialogOpen(true);
+  const handleOpenConfig = (providerId: string, configTarget: "provider" | "region" | "complexity", regionId?: string, complexityId?: string) => {
+    setConfiguringComplexity({ providerId, regionId, complexityId, configTarget });
+    setConfigDialogOpen(true);
   };
 
-  const handleDeleteRegion = (providerId: string, regionId: string) => {
-    setDeleteConfirm({ type: "region", id: `${providerId}-${regionId}` });
+  const handleSaveConfig = (config: MCPServiceConfig) => {
+    if (!configuringComplexity) return;
+
+    const newProviders = providers.map(provider => {
+      if (provider.id !== configuringComplexity.providerId) return provider;
+      
+      if (configuringComplexity.configTarget === "provider") {
+        return { ...provider, service: config };
+      }
+      
+      if (configuringComplexity.configTarget === "region" && configuringComplexity.regionId) {
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== configuringComplexity.regionId) return region;
+            return { ...region, service: config };
+          })
+        };
+      }
+      
+      if (configuringComplexity.configTarget === "complexity" && configuringComplexity.regionId && configuringComplexity.complexityId) {
+        return {
+          ...provider,
+          regions: provider.regions.map(region => {
+            if (region.id !== configuringComplexity.regionId) return region;
+            return {
+              ...region,
+              complexities: region.complexities.map(complexity => {
+                if (complexity.id !== configuringComplexity.complexityId) return complexity;
+                return { ...complexity, service: config };
+              })
+            };
+          })
+        };
+      }
+      
+      return provider;
+    });
+
+    onProvidersChange(newProviders);
+    setConfigDialogOpen(false);
+    setConfiguringComplexity(null);
+    toast.success("服务配置已保存");
   };
 
-  const handleConfirmDeleteRegion = () => {
-    if (!deleteConfirm) return;
-    const [providerId, regionId] = deleteConfirm.id.split('-');
-    const newProviders = providers.map(p => {
-      if (p.id !== providerId) return p;
+  const handleCreateProvider = (data: { id: string; name: string; layer: number }) => {
+    const newProviders = [...providers, {
+      id: data.id,
+      name: data.name,
+      layer: data.layer,
+      regions: [],
+      service: undefined
+    }];
+    onProvidersChange(newProviders);
+    toast.success("服务提供商已添加");
+  };
+
+  const handleEditProvider = (data: { id: string; name: string; layer?: number }) => {
+    if (!editingProvider) return;
+    const newProviders = providers.map(p => 
+      p.id === editingProvider.id ? { ...p, name: data.name } : p
+    );
+    onProvidersChange(newProviders);
+    setEditingProvider(null);
+    toast.success("服务提供商已更新");
+  };
+
+  const handleDeleteProvider = (providerId: string) => {
+    const newProviders = providers.filter(p => p.id !== providerId);
+    onProvidersChange(newProviders);
+    setDeleteDialogOpen(false);
+    setDeleteTarget(null);
+    toast.success("服务提供商已删除");
+  };
+
+  const handleCreateRegion = (data: { id: string; name: string }) => {
+    if (!editingRegion) return;
+    const newProviders = providers.map(provider => {
+      if (provider.id !== editingRegion.providerId) return provider;
       return {
-        ...p,
-        regions: p.regions.filter(r => r.id !== regionId)
+        ...provider,
+        regions: [...provider.regions, {
+          id: data.id,
+          name: data.name,
+          complexities: [],
+          service: undefined
+        }]
       };
     });
     onProvidersChange(newProviders);
-    setDeleteConfirm(null);
+    setEditingRegion(null);
+    toast.success("区域已添加");
+  };
+
+  const handleEditRegion = (data: { id: string; name: string }) => {
+    if (!editingRegion) return;
+    const newProviders = providers.map(provider => {
+      if (provider.id !== editingRegion.providerId) return provider;
+      return {
+        ...provider,
+        regions: provider.regions.map(region => 
+          region.id === editingRegion.region.id ? { ...region, name: data.name } : region
+        )
+      };
+    });
+    onProvidersChange(newProviders);
+    setEditingRegion(null);
+    toast.success("区域已更新");
+  };
+
+  const handleDeleteRegion = () => {
+    if (!deleteTarget || !deleteTarget.providerId || !deleteTarget.regionId) return;
+    const newProviders = providers.map(provider => {
+      if (provider.id !== deleteTarget.providerId) return provider;
+      return {
+        ...provider,
+        regions: provider.regions.filter(r => r.id !== deleteTarget.regionId)
+      };
+    });
+    onProvidersChange(newProviders);
+    setDeleteDialogOpen(false);
+    setDeleteTarget(null);
     toast.success("区域已删除");
   };
 
-  const handleConfigRegionService = (providerId: string, regionId: string) => {
-    const provider = providers.find(p => p.id === providerId);
-    if (provider?.layer === 2) {
-      setConfigServiceTarget({ providerId, regionId });
-      setIsConfigDialogOpen(true);
-    } else {
-      toast.error("仅二层模式可以在区域上配置服务");
-    }
-  };
-
-  // Complexity 相关操作
-  const handleAddComplexity = (providerId: string, regionId: string) => {
-    setDialogMode("create");
-    setEditingComplexity({ providerId, regionId, complexity: { id: "", name: "" } });
-    setIsComplexityDialogOpen(true);
-  };
-
-  const handleEditComplexity = (providerId: string, regionId: string, complexity: MCPComplexity) => {
-    setDialogMode("edit");
-    setEditingComplexity({ providerId, regionId, complexity });
-    setIsComplexityDialogOpen(true);
-  };
-
-  const handleDeleteComplexity = (providerId: string, regionId: string, complexityId: string) => {
-    setDeleteConfirm({ type: "complexity", id: `${providerId}-${regionId}-${complexityId}` });
-  };
-
-  const handleConfirmDeleteComplexity = () => {
-    if (!deleteConfirm || deleteConfirm.type !== "complexity") return;
-    const [providerId, regionId, complexityId] = deleteConfirm.id.split('-');
-    const newProviders = providers.map(p => {
-      if (p.id !== providerId) return p;
+  const handleCreateComplexity = (data: { id: string; name: string; description?: string }) => {
+    if (!editingComplexity) return;
+    const newProviders = providers.map(provider => {
+      if (provider.id !== editingComplexity.providerId) return provider;
       return {
-        ...p,
-        regions: p.regions.map(r => {
-          if (r.id !== regionId) return r;
+        ...provider,
+        regions: provider.regions.map(region => {
           return {
-            ...r,
-            complexities: r.complexities?.filter(c => c.id !== complexityId)
+            ...region,
+            complexities: [...region.complexities, {
+              id: data.id,
+              name: data.name,
+              description: data.description
+            }]
           };
         })
       };
     });
     onProvidersChange(newProviders);
-    setDeleteConfirm(null);
-    toast.success("复杂度已删除");
+    setEditingComplexity(null);
+    toast.success("复杂度级别已添加到所有区域");
   };
 
-  const handleConfigComplexityService = (providerId: string, regionId: string, complexityId: string) => {
-    setConfigServiceTarget({ providerId, regionId, complexityId });
-    setIsConfigDialogOpen(true);
-  };
-
-  // Service 配置相关操作
-  const handleSaveServiceConfig = (config: MCPServiceConfig) => {
-    if (!configServiceTarget) return;
-    const { providerId, regionId, complexityId } = configServiceTarget;
-    
+  const handleEditComplexity = (data: { id: string; name: string; description?: string }) => {
+    if (!editingComplexity) return;
     const newProviders = providers.map(provider => {
-      if (provider.id !== providerId) return provider;
-      
-      if (!regionId) {
-        // 一层模式：在提供商上配置
-        return { ...provider, service: config };
-      }
-      
-      if (!complexityId) {
-        // 二层模式：在区域上配置
-        return {
-          ...provider,
-          regions: provider.regions.map(region => 
-            region.id === regionId ? { ...region, service: config } : region
-          )
-        };
-      }
-      
-      // 三层模式：在复杂度上配置
+      if (provider.id !== editingComplexity.providerId) return provider;
       return {
         ...provider,
-        regions: provider.regions.map(region => 
-          region.id === regionId ? {
+        regions: provider.regions.map(region => {
+          if (region.id !== editingComplexity.regionId) return region;
+          return {
             ...region,
-            complexities: region.complexities?.map(complexity =>
-              complexity.id === complexityId ? { ...complexity, service: config } : complexity
+            complexities: region.complexities.map(complexity =>
+              complexity.id === editingComplexity.complexity.id 
+                ? { ...complexity, name: data.name, description: data.description }
+                : complexity
             )
-          } : region
-        )
+          };
+        })
       };
     });
-    
     onProvidersChange(newProviders);
-    setIsConfigDialogOpen(false);
-    setConfigServiceTarget(null);
-    toast.success("服务配置已保存");
+    setEditingComplexity(null);
+    toast.success("复杂度级别已更新");
   };
 
-  // 统一删除复杂度
+  // 打开选择复杂度对话框
   const handleOpenSelectComplexityDialog = (providerId: string) => {
-    setDeleteProviderId(providerId);
+    setDeletingProviderId(providerId);
     setSelectedComplexitiesForDelete(new Set());
-    setIsSelectComplexityDialogOpen(true);
+    setSelectComplexityDialogOpen(true);
   };
 
-  const handleToggleComplexityForDelete = (complexityName: string) => {
-    const newSelected = new Set(selectedComplexitiesForDelete);
-    if (newSelected.has(complexityName)) {
-      newSelected.delete(complexityName);
-    } else {
-      newSelected.add(complexityName);
-    }
-    setSelectedComplexitiesForDelete(newSelected);
-  };
+  // 确认删除选中的复杂度 - 按名称删除所有区域中的复杂度
+  const handleConfirmDeleteComplexities = () => {
+    if (!deletingProviderId || selectedComplexitiesForDelete.size === 0) return;
 
-  const handleConfirmDeleteDialogOpen = () => {
-    if (selectedComplexitiesForDelete.size === 0) {
-      toast.error("请至少选择一个复杂度");
-      return;
-    }
-    
     const newProviders = providers.map(provider => {
-      if (provider.id !== deleteProviderId) return provider;
+      if (provider.id !== deletingProviderId) return provider;
+      
+      // 获取要删除的复杂度名称列表
+      const complexityNamesToDelete = selectedComplexitiesForDelete;
       
       return {
         ...provider,
         regions: provider.regions.map(region => ({
           ...region,
-          complexities: region.complexities?.filter(complexity => 
-            !selectedComplexitiesForDelete.has(complexity.name)
-          )
+          complexities: region.complexities.filter(c => !complexityNamesToDelete.has(c.name))
         }))
       };
     });
-    
+
     onProvidersChange(newProviders);
-    setIsSelectComplexityDialogOpen(false);
+    setSelectComplexityDialogOpen(false);
+    setConfirmDeleteDialogOpen(false);
+    setDeletingProviderId(null);
     setSelectedComplexitiesForDelete(new Set());
     toast.success(`已删除 ${selectedComplexitiesForDelete.size} 个复杂度级别`);
   };
 
-  // 保存编辑
-  const handleSaveProvider = (data: { id: string; name: string; layer: number }) => {
-    if (dialogMode === "create") {
-      const newProvider: MCPProvider = {
-        id: data.id,
-        name: data.name,
-        layer: data.layer,
-        regions: []
-      };
-      onProvidersChange([...providers, newProvider]);
-      toast.success("提供商已添加");
-    } else {
-      const newProviders = providers.map(p => 
-        p.id === editingProvider?.id ? { ...p, name: data.name, layer: data.layer } : p
-      );
-      onProvidersChange(newProviders);
-      toast.success("提供商已更新");
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    switch (deleteTarget.type) {
+      case "provider":
+        handleDeleteProvider(deleteTarget.providerId!);
+        break;
+      case "region":
+        handleDeleteRegion();
+        break;
+      case "complexity":
+        // 不再处理单个复杂度删除
+        break;
     }
-    setIsProviderDialogOpen(false);
   };
 
-  const handleSaveRegion = (data: { id: string; name: string }) => {
-    const { providerId } = editingRegion || {};
-    if (!providerId) return;
-
-    if (dialogMode === "create") {
-      const newProviders = providers.map(p => {
-        if (p.id !== providerId) return p;
-        return {
-          ...p,
-          regions: [...p.regions, { id: data.id, name: data.name }]
-        };
-      });
-      onProvidersChange(newProviders);
-      toast.success("区域已添加");
-    } else {
-      const newProviders = providers.map(p => {
-        if (p.id !== providerId) return p;
-        return {
-          ...p,
-          regions: p.regions.map(r => r.id === editingRegion?.region.id ? { ...r, name: data.name } : r)
-        };
-      });
-      onProvidersChange(newProviders);
-      toast.success("区域已更新");
-    }
-    setIsRegionDialogOpen(false);
+  const isComplexitySelected = (providerId: string, regionId: string, complexityId: string) => {
+    return selectedComplexity === `${providerId}-${regionId}-${complexityId}`;
   };
 
-  const handleSaveComplexity = (data: { id: string; name: string; description?: string }) => {
-    const { providerId, regionId } = editingComplexity || {};
-    if (!providerId || !regionId) return;
-
-    if (dialogMode === "create") {
-      const newProviders = providers.map(p => {
-        if (p.id !== providerId) return p;
-        return {
-          ...p,
-          regions: p.regions.map(r => {
-            if (r.id !== regionId) return r;
-            return {
-              ...r,
-              complexities: [...(r.complexities || []), data]
-            };
-          })
-        };
-      });
-      onProvidersChange(newProviders);
-      toast.success("复杂度已添加");
-    } else {
-      const newProviders = providers.map(p => {
-        if (p.id !== providerId) return p;
-        return {
-          ...p,
-          regions: p.regions.map(r => {
-            if (r.id !== regionId) return r;
-            return {
-              ...r,
-              complexities: r.complexities?.map(c => 
-                c.id === editingComplexity?.complexity.id ? { ...c, ...data } : c
-              )
-            };
-          })
-        };
-      });
-      onProvidersChange(newProviders);
-      toast.success("复杂度已更新");
-    }
-    setIsComplexityDialogOpen(false);
+  const getLayerBadge = (layer: number) => {
+    const labels = { 1: "一层", 2: "二层", 3: "三层" };
+    return labels[layer as keyof typeof labels] || "三层";
   };
 
-  // 获取服务配置
-  const getServiceConfig = (providerId: string, regionId?: string, complexityId?: string): MCPServiceConfig | undefined => {
-    const provider = providers.find(p => p.id === providerId);
-    if (!provider) return undefined;
-
-    if (!regionId) {
-      return provider.service;
-    }
-
-    const region = provider.regions.find(r => r.id === regionId);
-    if (!region) return undefined;
-
-    if (!complexityId) {
-      return region.service;
-    }
-
-    return region.complexities?.find(c => c.id === complexityId)?.service;
-  };
-
-  // 搜索过滤
-  const filteredProviders = providers.filter(provider => {
-    const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase());
-    if (!matchesSearch) return false;
-
-    if (!searchTerm) return true;
-
-    const regionMatches = provider.regions.some(region =>
-      region.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      region.complexities?.some(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    return regionMatches;
-  });
-
-  // 获取所有唯一的复杂度名称
-  const getAllComplexityNames = (providerId: string): string[] => {
-    const provider = providers.find(p => p.id === providerId);
-    if (!provider) return [];
-    
-    const complexityNames = new Set<string>();
-    provider.regions.forEach(region => {
-      region.complexities?.forEach(c => {
-        complexityNames.add(c.name);
-      });
-    });
-    
-    return Array.from(complexityNames);
+  // 获取提供商的所有复杂度（从第一个区域获取）
+  const getProviderComplexities = (provider?: MCPProvider): MCPComplexity[] => {
+    if (!provider || provider.layer !== 3 || provider.regions.length === 0) return [];
+    return provider.regions[0].complexities;
   };
 
   return (
-    <div className="space-y-6">
-      {/* 搜索框 */}
-      <div className="relative">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="搜索提供商、区域、复杂度..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-muted-foreground">
+          点击展开/折叠，使用右侧按钮进行编辑和配置
+        </p>
       </div>
 
-      {/* Provider 列表 */}
-      <div className="space-y-4">
-        {filteredProviders.map((provider) => {
-          const hasRegions = provider.regions.length > 0;
-          const hasComplexities = provider.regions.some(r => r.complexities && r.complexities.length > 0);
-          const isExpanded = expandedProviders.has(provider.id);
-          const hasServiceConfig = provider.service || provider.regions.some(r => r.service || r.complexities?.some(c => c.service));
-          
-          return (
-            <Card key={provider.id} className={hasServiceConfig ? "border-primary/30" : ""}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 flex-1">
-                    <Server className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <CardTitle className="text-lg">{provider.name}</CardTitle>
-                        <Badge variant="outline" className="text-xs">
-                          {provider.layer === 1 ? "一层" : provider.layer === 2 ? "二层" : "三层"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
-                        <span>{hasRegions ? `${provider.regions.length} 个区域` : "无区域"}</span>
-                        {hasComplexities && <span>包含复杂度</span>}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    {provider.layer === 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleConfigProviderService(provider.id)}
-                        title={provider.service ? "编辑服务配置" : "配置服务"}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {/* 三层结构：统一删除复杂度按钮 */}
-                    {provider.layer === 3 && hasComplexities && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenSelectComplexityDialog(provider.id);
-                        }}
-                        title="统一删除复杂度"
-                      >
-                        <Layers className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
-                    
+      {providers.map((provider) => {
+        const configStatus = getProviderConfigStatus(provider);
+        const canExpand = provider.layer > 1;
+        // 检查是否有复杂度可以删除
+        const hasComplexities = provider.layer === 3 && provider.regions.length > 0 && provider.regions[0].complexities.length > 0;
+
+        return (
+          <Card key={provider.id}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div
+                  className={`flex items-center space-x-2 flex-1 ${canExpand ? "cursor-pointer" : ""}`}
+                  onClick={() => toggleProvider(provider.id)}
+                >
+                  {canExpand ? (
+                    expandedProviders.has(provider.id) ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )
+                  ) : (
+                    <div className="w-4 h-4" />
+                  )}
+                  <CardTitle className="text-lg">{provider.name}</CardTitle>
+                  <Badge variant="outline" className="flex items-center space-x-1">
+                    <Layers className="h-3 w-3" />
+                    <span>{getLayerBadge(provider.layer)}</span>
+                  </Badge>
+                  {/* 配置状态显示在最外层 */}
+                  {configStatus.allConfigured ? (
+                    <Badge variant="default" className="text-xs">已配置</Badge>
+                  ) : configStatus.unconfiguredCount > 0 ? (
+                    <Badge variant="secondary" className="text-xs">未配置 {configStatus.unconfiguredCount}</Badge>
+                  ) : null}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingProvider(provider);
+                    setProviderMode("edit");
+                    setProviderDialogOpen(true);
+                  }}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  {/* 三层结构：统一删除复杂度按钮 */}
+                  {provider.layer === 3 && hasComplexities && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleToggleProvider(provider.id)}
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditProvider(provider)}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteProvider(provider.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenSelectComplexityDialog(provider.id);
+                      }}
+                      title="统一删除复杂度"
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
-                  </div>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget({
+                      type: "provider",
+                      providerId: provider.id,
+                      name: provider.name
+                    });
+                    setDeleteDialogOpen(true);
+                  }}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                  {/* 只有一层结构才在最外层显示配置按钮 */}
+                  {provider.layer === 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenConfig(provider.id, "provider");
+                      }}
+                      title="配置服务"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-              </CardHeader>
+              </div>
+            </CardHeader>
+            
+            {/* 二层和三层模式下显示区域 */}
+            {canExpand && expandedProviders.has(provider.id) && (
+              <CardContent className="pl-6 space-y-2">
+                {provider.regions.map((region) => {
+                  const regionCanExpand = provider.layer === 3;
 
-              {/* Region 列表 */}
-              {isExpanded && provider.layer > 1 && (
-                <CardContent className="pt-0">
-                  <div className="border-t pl-4 space-y-3">
-                    {provider.regions.map((region) => {
-                      const regionKey = `${provider.id}-${region.id}`;
-                      const isRegionExpanded = expandedRegions.has(regionKey);
-                      const hasComplexities = region.complexities && region.complexities.length > 0;
-                      const hasRegionService = region.service || region.complexities?.some(c => c.service);
-                      
-                      return (
-                        <div key={region.id} className={hasRegionService ? "py-2 pr-4 border-l-2 border-primary/30" : "py-2 pr-4"}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2 flex-1">
-                              <Globe className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">{region.name}</span>
-                              {hasComplexities && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {region.complexities?.length} 个复杂度
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              {provider.layer === 2 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleConfigRegionService(provider.id, region.id)}
-                                  title={region.service ? "编辑服务配置" : "配置服务"}
-                                >
-                                  <Settings className="h-4 w-4" />
-                                </Button>
-                              )}
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleToggleRegion(provider.id, region.id)}
-                              >
-                                {isRegionExpanded ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditRegion(provider.id, region)}
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteRegion(provider.id, region.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Complexity 列表 */}
-                          {isRegionExpanded && provider.layer === 3 && hasComplexities && (
-                            <div className="mt-2 pl-4 space-y-2 border-l">
-                              {region.complexities?.map((complexity) => {
-                                const hasComplexityService = complexity.service;
-                                
-                                return (
-                                  <div key={complexity.id} className={hasComplexityService ? "py-2 border-l-2 border-primary/30" : "py-2"}>
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center space-x-2 flex-1">
-                                        <Zap className="h-4 w-4 text-muted-foreground" />
-                                        <span className="font-medium">{complexity.name}</span>
-                                        {complexity.description && (
-                                          <span className="text-xs text-muted-foreground">
-                                            {complexity.description}
-                                          </span>
-                                        )}
-                                        {complexity.service && (
-                                          <Badge variant="default" className="text-xs">
-                                            已配置
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      
-                                      <div className="flex items-center space-x-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleConfigComplexityService(provider.id, region.id, complexity.id)}
-                                          title={complexity.service ? "编辑服务配置" : "配置服务"}
-                                        >
-                                          <Settings className="h-4 w-4" />
-                                        </Button>
-                                        
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleEditComplexity(provider.id, region.id, complexity)}
-                                        >
-                                          <Settings className="h-4 w-4" />
-                                        </Button>
-                                        
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleDeleteComplexity(provider.id, region.id, complexity.id)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                  return (
+                    <div key={region.id} className="border-l-2 border-border pl-4">
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={`flex items-center space-x-2 py-2 flex-1 ${regionCanExpand ? "cursor-pointer" : ""}`}
+                          onClick={() => toggleRegion(region.id)}
+                        >
+                          {regionCanExpand ? (
+                            expandedRegions.has(region.id) ? (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            )
+                          ) : (
+                            <div className="w-4 h-4" />
+                          )}
+                          <span className="font-medium text-sm">{region.name}</span>
+                          {region.service && (
+                            <Badge variant="secondary" className="text-xs">已配置</Badge>
                           )}
                         </div>
-                      );
-                    })}
-                    
-                    {provider.regions.length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground text-sm">
-                        暂无区域，点击上方按钮添加
+                        <div className="flex items-center space-x-2">
+                          {/* 二层结构在区域显示配置按钮 */}
+                          {provider.layer === 2 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenConfig(provider.id, "region", region.id)}
+                              title="配置服务"
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => {
+                            setEditingRegion({ providerId: provider.id, region });
+                            setRegionMode("edit");
+                            setRegionDialogOpen(true);
+                          }}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => {
+                            setDeleteTarget({
+                              type: "region",
+                              providerId: provider.id,
+                              regionId: region.id,
+                              name: region.name
+                            });
+                            setDeleteDialogOpen(true);
+                          }}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
-      </div>
 
-      {/* Provider 对话框 */}
+                      {/* 三层模式显示复杂度 */}
+                      {regionCanExpand && expandedRegions.has(region.id) && (
+                        <div className="space-y-2 mt-2">
+                          {region.complexities.map((complexity) => (
+                            <div
+                              key={complexity.id}
+                              className={`p-3 border rounded-lg transition-all ${
+                                isComplexitySelected(provider.id, region.id, complexity.id)
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2 flex-1">
+                                  {isComplexitySelected(provider.id, region.id, complexity.id) && (
+                                    <Check className="h-4 w-4 text-primary" />
+                                  )}
+                                  <span className="text-sm font-medium">{complexity.name}</span>
+                                  {complexity.description && (
+                                    <span className="text-xs text-muted-foreground">
+                                      - {complexity.description}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {complexity.service && (
+                                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                                      <Globe className="h-3 w-3" />
+                                      <code className="bg-muted px-2 py-0.5 rounded max-w-[150px] truncate">
+                                        {complexity.service.url}
+                                      </code>
+                                    </div>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingComplexity({
+                                        providerId: provider.id,
+                                        regionId: region.id,
+                                        complexity
+                                      });
+                                      setComplexityMode("edit");
+                                      setComplexityDialogOpen(true);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  {/* 三层结构不显示复杂度的删除图标 */}
+                                  {provider.layer !== 3 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setDeleteTarget({
+                                          type: "complexity",
+                                          providerId: provider.id,
+                                          regionId: region.id,
+                                          complexityId: complexity.id,
+                                          name: complexity.name
+                                        });
+                                        setDeleteDialogOpen(true);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  )}
+                                  {/* 三层结构在复杂度级别显示配置按钮 */}
+                                  {provider.layer === 3 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleOpenConfig(provider.id, "complexity", region.id, complexity.id)}
+                                      title="配置服务"
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* 三层结构：在所有区域后添加一个添加复杂度级别的按钮 */}
+                {provider.layer === 3 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={() => {
+                      setEditingComplexity({
+                        providerId: provider.id,
+                        regionId: provider.regions[0]?.id || "",
+                        complexity: { id: "", name: "", description: "" }
+                      });
+                      setComplexityMode("create");
+                      setComplexityDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    添加复杂度级别（将添加到所有区域）
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    setEditingRegion({
+                      providerId: provider.id,
+                      region: { id: "", name: "", complexities: [] }
+                    });
+                    setRegionMode("create");
+                    setRegionDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  添加区域
+                </Button>
+              </CardContent>
+            )}
+          </Card>
+        );
+      })}
+
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          setEditingProvider(null);
+          setProviderMode("create");
+          setProviderDialogOpen(true);
+        }}
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        添加服务提供商
+      </Button>
+
+      <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>配置服务</DialogTitle>
+          </DialogHeader>
+          {configuringComplexity && (
+            <MCPProviderConfig
+              initialData={(() => {
+                const provider = providers.find(p => p.id === configuringComplexity.providerId);
+                if (configuringComplexity.configTarget === "provider") {
+                  return provider?.service;
+                }
+                if (configuringComplexity.configTarget === "region" && configuringComplexity.regionId) {
+                  const region = provider?.regions.find(r => r.id === configuringComplexity.regionId);
+                  return region?.service;
+                }
+                if (configuringComplexity.configTarget === "complexity" && configuringComplexity.regionId && configuringComplexity.complexityId) {
+                  const region = provider?.regions.find(r => r.id === configuringComplexity.regionId);
+                  const complexity = region?.complexities.find(c => c.id === configuringComplexity.complexityId);
+                  return complexity?.service;
+                }
+                return undefined;
+              })()}
+              onSave={handleSaveConfig}
+              onCancel={() => {
+                setConfigDialogOpen(false);
+                setConfiguringComplexity(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <EditProviderDialog
-        open={isProviderDialogOpen}
-        onOpenChange={setIsProviderDialogOpen}
+        open={providerDialogOpen}
+        onOpenChange={setProviderDialogOpen}
         provider={editingProvider}
-        onSave={handleSaveProvider}
-        mode={dialogMode}
+        onSave={providerMode === "create" ? handleCreateProvider : handleEditProvider}
+        mode={providerMode}
       />
 
-      {/* Region 对话框 */}
       <EditRegionDialog
-        open={isRegionDialogOpen}
-        onOpenChange={setIsRegionDialogOpen}
-        region={editingRegion?.region}
-        onSave={handleSaveRegion}
-        mode={dialogMode}
+        open={regionDialogOpen}
+        onOpenChange={setRegionDialogOpen}
+        region={editingRegion?.region || null}
+        onSave={regionMode === "create" ? handleCreateRegion : handleEditRegion}
+        mode={regionMode}
       />
 
-      {/* Complexity 对话框 */}
       <EditComplexityDialog
-        open={isComplexityDialogOpen}
-        onOpenChange={setIsComplexityDialogOpen}
-        complexity={editingComplexity?.complexity}
-        onSave={handleSaveComplexity}
-        mode={dialogMode}
+        open={complexityDialogOpen}
+        onOpenChange={setComplexityDialogOpen}
+        complexity={editingComplexity?.complexity || null}
+        onSave={complexityMode === "create" ? handleCreateComplexity : handleEditComplexity}
+        mode={complexityMode}
       />
 
-      {/* 删除确认对话框 */}
-      <Dialog open={deleteConfirm !== null} onOpenChange={() => setDeleteConfirm(null)}>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <span>确认删除</span>
+            </DialogTitle>
             <DialogDescription>
-              {deleteConfirm?.type === "provider" && "确定要删除这个提供商吗？"}
-              {deleteConfirm?.type === "region" && "确定要删除这个区域吗？"}
-              {deleteConfirm?.type === "complexity" && "确定要删除这个复杂度吗？"}
+              确定要删除 "{deleteTarget?.name}" 吗？此操作不可撤销。
+              {deleteTarget?.type === "provider" && " 删除服务提供商将同时删除其所有区域和复杂度级别。"}
+              {deleteTarget?.type === "region" && " 删除区域将同时删除其所有复杂度级别。"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               取消
             </Button>
-            <Button
-              onClick={() => {
-                if (deleteConfirm?.type === "provider") {
-                  handleConfirmDeleteProvider();
-                } else if (deleteConfirm?.type === "region") {
-                  handleConfirmDeleteRegion();
-                } else if (deleteConfirm?.type === "complexity") {
-                  handleConfirmDeleteComplexity();
-                }
-              }}
-              variant="destructive"
-            >
-              删除
+            <Button variant="destructive" onClick={handleDelete}>
+              确认删除
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Service 配置对话框 */}
-      <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle>
-              {configServiceTarget?.complexityId
-                ? "配置服务 - 复杂度"
-                : configServiceTarget?.regionId
-                ? "配置服务 - 区域"
-                : "配置服务 - 提供商"}
-            </DialogTitle>
+      {/* 选择要删除的复杂度对话框 */}
+      <Dialog open={selectComplexityDialogOpen} onOpenChange={setSelectComplexityDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>选择要删除的复杂度</DialogTitle>
             <DialogDescription>
-              配置MCP服务的基本信息和工具
+              请选择要从该提供商下所有区域中删除的复杂度级别
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto">
-            <MCPProviderConfig
-              initialData={getServiceConfig(
-                configServiceTarget?.providerId,
-                configServiceTarget?.regionId,
-                configServiceTarget?.complexityId
-              )}
-              onSave={handleSaveServiceConfig}
-              onCancel={() => {
-                setIsConfigDialogOpen(false);
-                setConfigServiceTarget(null);
-              }}
-            />
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {(() => {
+              const provider = providers.find(p => p.id === deletingProviderId);
+              const complexities = getProviderComplexities(provider);
+              
+              if (complexities.length === 0) {
+                return <p className="text-sm text-muted-foreground">暂无复杂度级别</p>;
+              }
+
+              return complexities.map((complexity) => (
+                <div
+                  key={complexity.id}
+                  className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-muted/50"
+                >
+                  <Checkbox
+                    id={`delete-complexity-${complexity.id}`}
+                    checked={selectedComplexitiesForDelete.has(complexity.name)}
+                    onCheckedChange={(checked) => {
+                      const newSet = new Set(selectedComplexitiesForDelete);
+                      if (checked) {
+                        newSet.add(complexity.name);
+                      } else {
+                        newSet.delete(complexity.name);
+                      }
+                      setSelectedComplexitiesForDelete(newSet);
+                    }}
+                  />
+                  <label
+                    htmlFor={`delete-complexity-${complexity.id}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    <div className="font-medium text-sm">{complexity.name}</div>
+                    {complexity.description && (
+                      <div className="text-xs text-muted-foreground">{complexity.description}</div>
+                    )}
+                  </label>
+                </div>
+              ));
+            })()}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setSelectComplexityDialogOpen(false);
+              setSelectedComplexitiesForDelete(new Set());
+            }}>
+              取消
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectComplexityDialogOpen(false);
+                setConfirmDeleteDialogOpen(true);
+              }}
+              disabled={selectedComplexitiesForDelete.size === 0}
+            >
+              下一步
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 选择复杂度删除对话框 */}
-      <Dialog open={isSelectComplexityDialogOpen} onOpenChange={setIsSelectComplexityDialogOpen}>
+      {/* 确认删除复杂度对话框 */}
+      <Dialog open={confirmDeleteDialogOpen} onOpenChange={setConfirmDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>统一删除复杂度</DialogTitle>
+            <DialogTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <span>确认删除复杂度</span>
+            </DialogTitle>
             <DialogDescription>
-              选择要删除的复杂度级别，将从所有区域中删除选中的复杂度
+              确定要从该提供商下所有区域中删除选中的 {selectedComplexitiesForDelete.size} 个复杂度级别吗？
+              此操作不可撤销，复杂度级别的服务配置也将一并删除。
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            {getAllComplexityNames(deleteProviderId).map((name) => {
-              const isSelected = selectedComplexitiesForDelete.has(name);
-              return (
-                <div
-                  key={name}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                    isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => handleToggleComplexityForDelete(name)}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded border ${
-                      isSelected ? "bg-primary border-primary" : "border-border"
-                    }`}>
-                      {isSelected && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <span className="font-medium">{name}</span>
-                  </div>
-                </div>
-              );
-            })}
-            
-            {getAllComplexityNames(deleteProviderId).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                暂无复杂度
-              </div>
-            )}
-          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSelectComplexityDialogOpen(false)}>
-              取消
+            <Button variant="outline" onClick={() => {
+              setConfirmDeleteDialogOpen(false);
+              setSelectComplexityDialogOpen(true);
+            }}>
+              返回
             </Button>
-            <Button onClick={handleConfirmDeleteDialogOpen} disabled={selectedComplexitiesForDelete.size === 0}>
-              删除选中的 {selectedComplexitiesForDelete.size} 个复杂度
+            <Button variant="destructive" onClick={handleConfirmDeleteComplexities}>
+              确认删除
             </Button>
           </DialogFooter>
         </DialogContent>
