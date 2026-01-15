@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +22,11 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
   const [updates, setUpdates] = useState<Array<{ id: string; name: string; description?: string }>>([]);
 
   // 当对话框打开或complexities变化时，初始化updates
-  useState(() => {
+  useEffect(() => {
     if (open) {
       setUpdates(complexities.map(c => ({ id: c.id, name: c.name, description: c.description })));
     }
-  });
+  }, [open, complexities]);
 
   const handleNameChange = (id: string, newName: string) => {
     setUpdates(updates.map(u => u.id === id ? { ...u, name: newName } : u));
