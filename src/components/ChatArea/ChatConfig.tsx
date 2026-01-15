@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { Database, RotateCcw } from "lucide-react";
+import { Database, RotateCcw, X } from "lucide-react";
 
 interface ModelConfig {
   id: string;
@@ -92,7 +92,12 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
     <div className="space-y-4">
       {/* 清空按钮 */}
       <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={handleClear}>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleClear}
+          className="h-6 px-2 text-xs"
+        >
           <RotateCcw className="h-3 w-3 mr-1" />
           清空
         </Button>
