@@ -170,7 +170,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                 value={newPromptName}
                 onChange={(e) => setNewPromptName(e.target.value)}
                 placeholder="例如：系统提示词"
-                className="h-8 text-sm"
+                className="h-8 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
             <div>
@@ -180,7 +180,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                 onChange={(e) => setNewPromptContent(e.target.value)}
                 placeholder="输入提示词内容..."
                 rows={3}
-                className="text-sm resize-none"
+                className="text-sm resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
             <div className="flex justify-end">
