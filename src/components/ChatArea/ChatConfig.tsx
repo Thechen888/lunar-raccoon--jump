@@ -25,12 +25,32 @@ interface ChatConfigProps {
     documentCollectionId?: string;
     databaseAddress?: string;
   }) => void;
+  currentConfig?: {
+    modelId: string;
+    documentCollectionId?: string;
+    databaseAddress?: string;
+  };
 }
 
-export const ChatConfig = ({ models, documentCollections, onConfigChange }: ChatConfigProps) => {
+export const ChatConfig = ({ models, documentCollections, onConfigChange, currentConfig }: ChatConfigProps) => {
   const [modelId, setModelId] = useState<string>(models[0]?.id || "");
   const [documentCollectionId, setDocumentCollectionId] = useState<string>("");
   const [databaseAddress, setDatabaseAddress] = useState<string>("");
+
+  // 同步父组件传递的配置到内部状态
+  useEffect(() => {
+    if (currentConfig) {
+      if (currentConfig.modelId && currentConfig.modelId !== modelId) {
+        setModelId(currentConfig.modelId);
+      }
+      if (currentConfig.documentCollectionId && currentConfig.documentCollectionId !== documentCollectionId) {
+        setDocumentCollectionId(currentConfig.documentCollectionId);
+      }
+      if (currentConfig.databaseAddress !== undefined && currentConfig.databaseAddress !== databaseAddress) {
+        setDatabaseAddress(currentConfig.databaseAddress);
+      }
+    }
+  }, [currentConfig]);
 
   const handleModelChange = (newModelId: string) => {
     setModelId(newModelId);

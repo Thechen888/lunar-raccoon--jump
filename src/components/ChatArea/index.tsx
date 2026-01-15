@@ -165,6 +165,7 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                       models={availableModels}
                       documentCollections={availableDocumentCollections}
                       onConfigChange={setChatConfig}
+                      currentConfig={chatConfig}
                     />
                   </AccordionContent>
                 </AccordionItem>
