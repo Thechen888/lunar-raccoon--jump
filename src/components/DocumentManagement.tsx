@@ -628,9 +628,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           <CardTitle className="text-lg">{collection.name}</CardTitle>
                           <CardDescription>{collection.description}</CardDescription>
                         </div>
-                        <Badge variant={collection.status === "active" ? "default" : "secondary"}>
-                          {collection.status === "active" ? "活跃" : "非活跃"}
-                        </Badge>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -645,15 +642,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             原文档:
                           </span>
                           <span className="font-medium">{collection.documentCount}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">向量索引:</span>
-                          <Badge 
-                            variant={collection.vectorIndexStatus === "ready" ? "default" : collection.vectorIndexStatus === "building" ? "secondary" : "destructive"}
-                            className="text-xs"
-                          >
-                            {collection.vectorIndexStatus === "ready" ? "就绪" : collection.vectorIndexStatus === "building" ? "构建中" : "未索引"}
-                          </Badge>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">最后更新:</span>
