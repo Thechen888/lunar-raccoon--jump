@@ -116,6 +116,9 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
     description: ""
   });
   const [syncLoading, setSyncLoading] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserRoleId, setNewUserRoleId] = useState("");
 
   const filteredUsers = users.filter(
     (user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -132,14 +135,17 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
   const handleAddUser = () => {
     const newUser: User = {
       id: `user-${Date.now()}`,
-      name: "新用户",
-      email: "",
-      roleId: roles.find((r) => r.isDefault)?.id || "",
+      name: newUserName || "新用户",
+      email: newUserEmail || "",
+      roleId: newUserRoleId || roles.find((r) => r.isDefault)?.id || "",
       lastLogin: "从未登录",
       status: "active"
     };
     setUsers([...users, newUser]);
     setIsAddUserDialogOpen(false);
+    setNewUserName("");
+    setNewUserEmail("");
+    setNewUserRoleId("");
     toast.success("用户已添加");
   };
 
@@ -255,15 +261,23 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                       <div className="space-y-4">
                         <div>
                           <Label>姓名</Label>
-                          <Input placeholder="输入用户姓名" />
+                          <Input 
+                            placeholder="输入用户姓名" 
+                            value={newUserName}
+                            onChange={(e) => setNewUserName(e.target.value)}
+                          />
                         </div>
                         <div>
                           <Label>邮箱</Label>
-                          <Input placeholder="user@example.com" />
+                          <Input 
+                            placeholder="user@example.com" 
+                            value={newUserEmail}
+                            onChange={(e) => setNewUserEmail(e.target.value)}
+                          />
                         </div>
                         <div>
                           <Label>角色</Label>
-                          <Select defaultValue={getDefaultRole()?.id}>
+                          <Select value={newUserRoleId} onValueChange={setNewUserRoleId}>
                             <SelectTrigger>
                               <SelectValue placeholder="选择角色" />
                             </SelectTrigger>
