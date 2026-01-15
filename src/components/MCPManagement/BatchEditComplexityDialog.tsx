@@ -15,30 +15,35 @@ interface BatchEditComplexityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   complexities: MCPComplexity[];
-  onSave: (updates: Array<{ id: string; name: string; description?: string }>) => void;
+  onSave: (updates: Array<{ originalName: string; newName: string; description?: string }>) => void;
 }
 
 export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, onSave }: BatchEditComplexityDialogProps) => {
-  const [updates, setUpdates] = useState<Array<{ id: string; name: string; description?: string }>>([]);
+  // 存储更新数据：包含原始名称（用于匹配）、新名称、新描述
+  const [updates, setUpdates] = useState<Array<{ originalName: string; newName: string; description?: string }>>([]);
 
   // 当对话框打开或complexities变化时，初始化updates
   useEffect(() => {
     if (open) {
-      setUpdates(complexities.map(c => ({ id: c.id, name: c.name, description: c.description })));
+      setUpdates(complexities.map(c => ({ 
+        originalName: c.name, // 保存原始名称
+        newName: c.name, 
+        description: c.description 
+      })));
     }
   }, [open, complexities]);
 
-  const handleNameChange = (id: string, newName: string) => {
-    setUpdates(updates.map(u => u.id === id ? { ...u, name: newName } : u));
+  const handleNameChange = (index: number, newName: string) => {
+    setUpdates(updates.map((u, i) => i === index ? { ...u, newName } : u));
   };
 
-  const handleDescriptionChange = (id: string, newDesc: string) => {
-    setUpdates(updates.map(u => u.id === id ? { ...u, description: newDesc } : u));
+  const handleDescriptionChange = (index: number, newDesc: string) => {
+    setUpdates(updates.map((u, i) => i === index ? { ...u, description: newDesc } : u));
   };
 
   const handleSave = () => {
     // 验证所有名称都不为空
-    const emptyName = updates.find(u => !u.name.trim());
+    const emptyName = updates.find(u => !u.newName.trim());
     if (emptyName) {
       toast.error("所有复杂度名称都不能为空");
       return;
@@ -60,22 +65,22 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
 
         <div className="flex-1 overflow-y-auto space-y-4">
           {complexities.map((complexity, index) => {
-            const update = updates.find(u => u.id === complexity.id) || complexity;
+            const update = updates[index];
             return (
               <div key={complexity.id} className="space-y-3">
                 <div>
                   <Label>复杂度级别 {index + 1} 名称</Label>
                   <Input
-                    value={update.name}
-                    onChange={(e) => handleNameChange(complexity.id, e.target.value)}
-                    placeholder="例如：精简"
+                    value={update.newName}
+                    onChange={(e) => handleNameChange(index, e.target.value)}
+                    placeholder={complexity.name}
                   />
                 </div>
                 <div>
                   <Label>描述</Label>
                   <Input
                     value={update.description || ""}
-                    onChange={(e) => handleDescriptionChange(complexity.id, e.target.value)}
+                    onChange={(e) => handleDescriptionChange(index, e.target.value)}
                     placeholder="描述这个复杂度级别..."
                   />
                 </div>
