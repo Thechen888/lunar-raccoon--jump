@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-import { Search, Globe, Zap, Code, MessageSquare } from "lucide-react";
+import { Search, Globe, Zap, Code, MessageSquare, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export interface MCPServiceConfig {
@@ -98,6 +98,9 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
   // 工具搜索
   const [toolSearchTerm, setToolSearchTerm] = useState("");
 
+  // 检查基本信息是否完成
+  const basicInfoComplete = !!(name.trim() && url.trim());
+
   const handleSave = () => {
     if (!name.trim()) {
       toast.error("请输入服务名称");
@@ -134,8 +137,20 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">基本信息</TabsTrigger>
-          <TabsTrigger value="tools">工具</TabsTrigger>
-          <TabsTrigger value="prompts">提示</TabsTrigger>
+          <TabsTrigger 
+            value="tools" 
+            disabled={!basicInfoComplete}
+            title={!basicInfoComplete ? "请先完成基本信息配置" : ""}
+          >
+            工具 {!basicInfoComplete && <Lock className="h-3 w-3 ml-1" />}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="prompts" 
+            disabled={!basicInfoComplete}
+            title={!basicInfoComplete ? "请先完成基本信息配置" : ""}
+          >
+            提示 {!basicInfoComplete && <Lock className="h-3 w-3 ml-1" />}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4">
@@ -189,109 +204,129 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
         </TabsContent>
 
         <TabsContent value="tools" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">工具管理</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* 搜索框 */}
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="搜索工具..."
-                  value={toolSearchTerm}
-                  onChange={(e) => setToolSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-
-              {/* 工具列表 */}
-              {filteredTools.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {tools?.length === 0 ? "暂无工具" : "未找到匹配的工具"}
+          {!basicInfoComplete ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">请先完成基本信息配置</p>
+                <p className="text-sm text-muted-foreground mt-2">填写服务名称和URL后即可配置工具</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">工具管理</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* 搜索框 */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="搜索工具..."
+                    value={toolSearchTerm}
+                    onChange={(e) => setToolSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-              ) : (
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-3">
-                    {filteredTools.map((tool) => (
-                      <Card key={tool.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <Zap className="h-4 w-4 text-primary" />
-                                <span className="font-medium">{tool.name}</span>
-                                <Badge 
-                                  variant={
-                                    tool.method === "GET" ? "default" :
-                                    tool.method === "POST" ? "secondary" :
-                                    tool.method === "PUT" ? "outline" :
-                                    tool.method === "DELETE" ? "destructive" :
-                                    "outline"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {tool.method}
-                                </Badge>
-                                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                                  <Globe className="h-3 w-3" />
-                                  <code className="bg-muted px-2 py-0.5 rounded">
-                                    {tool.path}
-                                  </code>
-                                </div>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{tool.description}</p>
-                            </div>
-                            <div className="flex items-center space-x-2 ml-4">
-                              <Switch
-                                checked={tool.enabled}
-                                onCheckedChange={() => handleToggleTool(tool.id)}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                {/* 工具列表 */}
+                {filteredTools.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {tools?.length === 0 ? "暂无工具" : "未找到匹配的工具"}
                   </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-3">
+                      {filteredTools.map((tool) => (
+                        <Card key={tool.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <Zap className="h-4 w-4 text-primary" />
+                                  <span className="font-medium">{tool.name}</span>
+                                  <Badge 
+                                    variant={
+                                      tool.method === "GET" ? "default" :
+                                      tool.method === "POST" ? "secondary" :
+                                      tool.method === "PUT" ? "outline" :
+                                      tool.method === "DELETE" ? "destructive" :
+                                      "outline"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {tool.method}
+                                  </Badge>
+                                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                                    <Globe className="h-3 w-3" />
+                                    <code className="bg-muted px-2 py-0.5 rounded">
+                                      {tool.path}
+                                    </code>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{tool.description}</p>
+                              </div>
+                              <div className="flex items-center space-x-2 ml-4">
+                                <Switch
+                                  checked={tool.enabled}
+                                  onCheckedChange={() => handleToggleTool(tool.id)}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="prompts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">提示管理</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {(!prompts || prompts.length === 0) ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  暂无提示
-                </div>
-              ) : (
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-3">
-                    {prompts.map((prompt) => (
-                      <Card key={prompt.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center space-x-2 flex-1">
-                              <MessageSquare className="h-4 w-4 text-primary" />
-                              <span className="font-medium">{prompt.name}</span>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
-                            {prompt.content}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
+          {!basicInfoComplete ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">请先完成基本信息配置</p>
+                <p className="text-sm text-muted-foreground mt-2">填写服务名称和URL后即可配置提示</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">提示管理</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(!prompts || prompts.length === 0) ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    暂无提示
                   </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-3">
+                      {prompts.map((prompt) => (
+                        <Card key={prompt.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center space-x-2 flex-1">
+                                <MessageSquare className="h-4 w-4 text-primary" />
+                                <span className="font-medium">{prompt.name}</span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
+                              {prompt.content}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
