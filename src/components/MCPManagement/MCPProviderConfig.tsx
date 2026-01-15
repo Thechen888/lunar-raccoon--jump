@@ -167,7 +167,6 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="例如：PANGU-中国-精简"
-                  className="!focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
                 />
               </div>
               <div>
@@ -177,7 +176,6 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="描述这个MCP服务的用途..."
                   rows={2}
-                  className="!focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
                 />
               </div>
               <div>
@@ -188,7 +186,6 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://api.example.com/mcp"
-                  className="!focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
                 />
                 <p className="text-xs text-muted-foreground mt-1">远程URL地址</p>
               </div>
@@ -199,7 +196,6 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   onChange={(e) => setHeaders(e.target.value)}
                   placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}'
                   rows={4}
-                  className="!focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
                 />
                 <p className="text-xs text-muted-foreground mt-1">HTTP 请求的自定义请求头（JSON格式）</p>
               </div>
@@ -229,7 +225,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                     placeholder="搜索工具..."
                     value={toolSearchTerm}
                     onChange={(e) => setToolSearchTerm(e.target.value)}
-                    className="pl-9 !focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
+                    className="pl-9"
                   />
                 </div>
 

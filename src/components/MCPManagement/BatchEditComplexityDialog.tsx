@@ -92,7 +92,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
                     value={displayName}
                     onChange={(e) => handleNameChange(complexity.id, e.target.value)}
                     placeholder={complexity.name}
-                    className="w-full !focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
+                    className="w-full focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
                 <div>
@@ -101,7 +101,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
                     value={displayDescription || ""}
                     onChange={(e) => handleDescriptionChange(complexity.id, e.target.value)}
                     placeholder="描述这个复杂度级别..."
-                    className="w-full !focus-visible:ring-0 !focus-visible:ring-offset-0 focus:outline-none"
+                    className="w-full focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
               </div>
