@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers, Eraser } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Settings, Globe, Plus, Edit, Trash2, AlertTriangle, Layers, Eraser, Edit3 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { MCPProviderConfig, MCPServiceConfig } from "./MCPProviderConfig";
 import { EditProviderDialog } from "./EditProviderDialog";
 import { EditRegionDialog } from "./EditRegionDialog";
 import { EditComplexityDialog } from "./EditComplexityDialog";
+import { BatchEditComplexityDialog } from "./BatchEditComplexityDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
@@ -92,6 +93,10 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
   const [deletingProviderId, setDeletingProviderId] = useState<string | null>(null);
   const [selectedComplexitiesForDelete, setSelectedComplexitiesForDelete] = useState<Set<string>>(new Set());
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
+
+  // 批量修改复杂度对话框状态
+  const [batchEditDialogOpen, setBatchEditDialogOpen] = useState(false);
+  const [editingProviderForBatchEdit, setEditingProviderForBatchEdit] = useState<MCPProvider | null>(null);
 
   // 计算提供商的配置状态
   const getProviderConfigStatus = (provider: MCPProvider) => {
@@ -327,6 +332,42 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
     toast.success("复杂度级别已更新");
   };
 
+  // 批量修改复杂度
+  const handleBatchEditComplexities = (updates: Array<{ id: string; name: string; description?: string }>) => {
+    if (!editingProviderForBatchEdit) return;
+
+    const newProviders = providers.map(provider => {
+      if (provider.id !== editingProviderForBatchEdit.id) return provider;
+
+      return {
+        ...provider,
+        regions: provider.regions.map(region => ({
+          ...region,
+          complexities: region.complexities.map(complexity => {
+            const update = updates.find(u => u.id === complexity.id);
+            if (update) {
+              return {
+                ...complexity,
+                name: update.name,
+                description: update.description
+              };
+            }
+            return complexity;
+          })
+        }))
+      };
+    });
+
+    onProvidersChange(newProviders);
+    toast.success("已批量修改复杂度级别");
+  };
+
+  // 打开批量修改对话框
+  const handleOpenBatchEditDialog = (provider: MCPProvider) => {
+    setEditingProviderForBatchEdit(provider);
+    setBatchEditDialogOpen(true);
+  };
+
   // 打开选择复杂度对话框
   const handleOpenSelectComplexityDialog = (providerId: string) => {
     setDeletingProviderId(providerId);
@@ -402,7 +443,7 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
       {providers.map((provider) => {
         const configStatus = getProviderConfigStatus(provider);
         const canExpand = provider.layer > 1;
-        // 检查是否有复杂度可以删除
+        // 检查是否有复杂度可以删除或批量修改
         const hasComplexities = provider.layer === 3 && provider.regions.length > 0 && provider.regions[0].complexities.length > 0;
 
         return (
@@ -443,6 +484,20 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
                   }}>
                     <Edit className="h-4 w-4" />
                   </Button>
+                  {/* 三层结构：批量修改复杂度按钮 */}
+                  {provider.layer === 3 && hasComplexities && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenBatchEditDialog(provider);
+                      }}
+                      title="批量修改复杂度"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                  )}
                   {/* 三层结构：统一删除复杂度按钮 */}
                   {provider.layer === 3 && hasComplexities && (
                     <Button
@@ -711,6 +766,14 @@ export const MCPComplexityTree = ({ providers, onProvidersChange }: MCPComplexit
         complexity={editingComplexity?.complexity || null}
         onSave={complexityMode === "create" ? handleCreateComplexity : handleEditComplexity}
         mode={complexityMode}
+      />
+
+      {/* 批量修改复杂度对话框 */}
+      <BatchEditComplexityDialog
+        open={batchEditDialogOpen}
+        onOpenChange={setBatchEditDialogOpen}
+        complexities={editingProviderForBatchEdit ? getProviderComplexities(editingProviderForBatchEdit) : []}
+        onSave={handleBatchEditComplexities}
       />
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
