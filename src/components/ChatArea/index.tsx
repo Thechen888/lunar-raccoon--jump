@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageSquare, Settings2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { LoadingIndicator } from "./LoadingIndicator";
@@ -56,6 +56,12 @@ interface ChatAreaProps {
   mcpProviders: MCPProvider[];
 }
 
+const defaultConfig = {
+  modelId: "model-1",
+  documentCollectionId: undefined,
+  databaseAddress: undefined
+};
+
 export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -68,16 +74,30 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 对话配置
+  // 从 localStorage 加载配置，如果没有则使用默认配置
   const [chatConfig, setChatConfig] = useState<{
     modelId: string;
     documentCollectionId?: string;
     databaseAddress?: string;
-  }>({
-    modelId: "model-1",
-    documentCollectionId: undefined,
-    databaseAddress: undefined
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('chatConfig');
+      return saved ? JSON.parse(saved) : defaultConfig;
+    } catch {
+      return defaultConfig;
+    }
   });
+
+  // 当配置变化时保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('chatConfig', JSON.stringify(chatConfig));
+  }, [chatConfig]);
+
+  // 清空配置
+  const handleClearConfig = () => {
+    setChatConfig(defaultConfig);
+    toast.success("配置已清空");
+  };
 
   // 可用模型（从模型管理获取）
   const availableModels: ModelConfig[] = [
@@ -166,6 +186,7 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                       documentCollections={availableDocumentCollections}
                       onConfigChange={setChatConfig}
                       currentConfig={chatConfig}
+                      onClear={handleClearConfig}
                     />
                   </AccordionContent>
                 </AccordionItem>
