@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,11 @@ interface EditRegionDialogProps {
 }
 
 export const EditRegionDialog = ({ open, onOpenChange, region, onSave, mode }: EditRegionDialogProps) => {
-  const [name, setName] = useState(region?.name || "");
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    setName(region?.name || "");
+  }, [region]);
 
   const handleSave = () => {
     if (!name.trim()) {

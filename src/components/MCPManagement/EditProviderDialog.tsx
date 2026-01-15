@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,15 @@ interface EditProviderDialogProps {
 }
 
 export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode }: EditProviderDialogProps) => {
-  const [name, setName] = useState(provider?.name || "");
-  const [layer, setLayer] = useState(provider?.layer ?? 3);
+  const [name, setName] = useState("");
+  const [layer, setLayer] = useState(3);
+
+  useEffect(() => {
+    setName(provider?.name || "");
+    if (provider?.layer !== undefined) {
+      setLayer(provider.layer);
+    }
+  }, [provider]);
 
   const handleSave = () => {
     if (!name.trim()) {
