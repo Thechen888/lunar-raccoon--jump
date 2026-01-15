@@ -119,6 +119,8 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRoleId, setNewUserRoleId] = useState("");
+  const [newRoleName, setNewRoleName] = useState("");
+  const [newRoleDescription, setNewRoleDescription] = useState("");
 
   const filteredUsers = users.filter(
     (user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -152,14 +154,16 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
   const handleAddRole = () => {
     const newRole: Role = {
       id: `role-${Date.now()}`,
-      name: "新角色",
-      description: "",
+      name: newRoleName || "新角色",
+      description: newRoleDescription || "",
       isDefault: false,
       isSystem: false,
       permissions: []
     };
     setRoles([...roles, newRole]);
     setIsAddRoleDialogOpen(false);
+    setNewRoleName("");
+    setNewRoleDescription("");
     toast.success("角色已添加");
   };
 
@@ -337,11 +341,19 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                     <div className="space-y-4">
                       <div>
                         <Label>角色名称</Label>
-                        <Input placeholder="输入角色名称" />
+                        <Input 
+                          placeholder="输入角色名称" 
+                          value={newRoleName}
+                          onChange={(e) => setNewRoleName(e.target.value)}
+                        />
                       </div>
                       <div>
                         <Label>描述</Label>
-                        <Textarea placeholder="描述这个角色的用途" />
+                        <Textarea 
+                          placeholder="描述这个角色的用途"
+                          value={newRoleDescription}
+                          onChange={(e) => setNewRoleDescription(e.target.value)}
+                        />
                       </div>
                     </div>
                     <DialogFooter>
