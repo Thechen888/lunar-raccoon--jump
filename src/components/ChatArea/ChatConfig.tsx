@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
@@ -95,7 +94,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
       <div className="space-y-2">
         <Label className="text-xs font-medium">选择模型</Label>
         <Select value={modelId} onValueChange={handleModelChange}>
-          <SelectTrigger className="h-8 text-sm overflow-hidden">
+          <SelectTrigger className="h-8 text-sm">
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px]">
@@ -114,23 +113,27 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
       {/* 文档集多选 */}
       <div className="space-y-2">
         <Label className="text-xs font-medium">选择文档集（多选）</Label>
-        <ScrollArea className="h-[120px] border rounded-md p-2">
-          <div className="space-y-1">
+        <ScrollArea className="h-[120px] border rounded-md">
+          <div className="p-2 space-y-1">
             {documentCollections.map((collection) => (
-              <div key={collection.id} className="flex items-center space-x-2 p-1 hover:bg-muted/50 rounded">
+              <div key={collection.id} className="flex items-start space-x-2 p-2 hover:bg-muted/50 rounded-md">
                 <Checkbox
                   id={`collection-${collection.id}`}
                   checked={selectedCollectionIds.includes(collection.id)}
                   onCheckedChange={() => handleToggleCollection(collection.id)}
-                  className="h-4 w-4"
+                  className="h-4 w-4 mt-0.5"
                 />
-                <label
-                  htmlFor={`collection-${collection.id}`}
-                  className="flex-1 flex items-center justify-between cursor-pointer text-sm"
-                >
-                  <span>{collection.name}</span>
-                  <Badge variant="outline" className="text-xs">{collection.type}</Badge>
-                </label>
+                <div className="flex-1 flex items-center justify-between">
+                  <label
+                    htmlFor={`collection-${collection.id}`}
+                    className="text-sm cursor-pointer flex-1 pr-2"
+                  >
+                    {collection.name}
+                  </label>
+                  <Badge variant="outline" className="text-xs shrink-0">
+                    {collection.type}
+                  </Badge>
+                </div>
               </div>
             ))}
             {documentCollections.length === 0 && (
