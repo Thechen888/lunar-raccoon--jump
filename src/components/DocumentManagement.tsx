@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X, ChevronDown, ChevronRight, MessageSquare, Download, Eye, Loader2 } from "lucide-react";
+import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X, ChevronDown, ChevronRight, MessageSquare, Download, Eye, Loader2, Database } from "lucide-react";
 import { toast } from "sonner";
 
 interface QAItem {
@@ -46,16 +46,24 @@ interface DocumentCollection {
   tags: string[];
   vectorIndexStatus: "ready" | "building" | "none";
   documentCount: number;
+  databaseAddress?: string;
 }
 
 export const DocumentManagement = () => {
   const [activeTab, setActiveTab] = useState("collections");
   const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<DocumentCollection | null>(null);
-  const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string }>({
+  const [editFormData, setEditFormData] = useState<{ name: string; type: string; description: string; databaseAddress: string }>({
     name: "",
     type: "",
-    description: ""
+    description: "",
+    databaseAddress: ""
+  });
+  const [addCollectionFormData, setAddCollectionFormData] = useState<{ name: string; type: string; description: string; databaseAddress: string }>({
+    name: "",
+    type: "",
+    description: "",
+    databaseAddress: ""
   });
 
   const [collections, setCollections] = useState<DocumentCollection[]>([
@@ -68,7 +76,8 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["技术", "开发", "中文"],
       vectorIndexStatus: "ready",
-      documentCount: 156
+      documentCount: 156,
+      databaseAddress: "https://pinecone.io/tech-docs-cn"
     },
     {
       id: "business-docs-cn",
@@ -79,7 +88,8 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["业务", "产品", "中文"],
       vectorIndexStatus: "ready",
-      documentCount: 89
+      documentCount: 89,
+      databaseAddress: "https://pinecone.io/business-docs-cn"
     },
     {
       id: "legal-docs-eu",
@@ -101,7 +111,8 @@ export const DocumentManagement = () => {
       status: "active",
       tags: ["知识", "内部", "综合"],
       vectorIndexStatus: "ready",
-      documentCount: 412
+      documentCount: 412,
+      databaseAddress: "https://pinecone.io/knowledge-base"
     }
   ]);
 
@@ -349,10 +360,12 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
       status: "active",
       tags: [],
       vectorIndexStatus: "none",
-      documentCount: 0
+      documentCount: 0,
+      databaseAddress: addCollectionFormData.databaseAddress || undefined
     };
     setCollections([...collections, newCollection]);
     setIsAddCollectionDialogOpen(false);
+    setAddCollectionFormData({ name: "", type: "", description: "", databaseAddress: "" });
     toast.success("文档集已创建");
   };
 
@@ -361,7 +374,8 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
     setEditFormData({
       name: collection.name,
       type: collection.type,
-      description: collection.description
+      description: collection.description,
+      databaseAddress: collection.databaseAddress || ""
     });
   };
 
@@ -374,6 +388,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
               name: editFormData.name, 
               type: editFormData.type, 
               description: editFormData.description,
+              databaseAddress: editFormData.databaseAddress || undefined,
               lastUpdated: new Date().toISOString().split('T')[0]
             } 
           : c
@@ -585,11 +600,18 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                       <div className="space-y-4">
                         <div>
                           <Label>名称</Label>
-                          <Input placeholder="输入文档集名称" />
+                          <Input 
+                            placeholder="输入文档集名称" 
+                            value={addCollectionFormData.name}
+                            onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, name: e.target.value })}
+                          />
                         </div>
                         <div>
                           <Label>类型</Label>
-                          <Select>
+                          <Select
+                            value={addCollectionFormData.type}
+                            onValueChange={(value) => setAddCollectionFormData({ ...addCollectionFormData, type: value })}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="选择类型" />
                             </SelectTrigger>
@@ -603,12 +625,28 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           </Select>
                         </div>
                         <div>
+                          <Label>数据库地址</Label>
+                          <Input 
+                            placeholder="https://pinecone.io/my-index" 
+                            value={addCollectionFormData.databaseAddress}
+                            onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, databaseAddress: e.target.value })}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">向量数据库地址（可选）</p>
+                        </div>
+                        <div>
                           <Label>描述</Label>
-                          <Textarea placeholder="描述这个文档集的用途" />
+                          <Textarea 
+                            placeholder="描述这个文档集的用途"
+                            value={addCollectionFormData.description}
+                            onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, description: e.target.value })}
+                          />
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddCollectionDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => {
+                          setIsAddCollectionDialogOpen(false);
+                          setAddCollectionFormData({ name: "", type: "", description: "", databaseAddress: "" });
+                        }}>
                           取消
                         </Button>
                         <Button onClick={handleAddCollection}>创建</Button>
@@ -643,6 +681,17 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           </span>
                           <span className="font-medium">{collection.documentCount}</span>
                         </div>
+                        {collection.databaseAddress && (
+                          <div className="flex items-start justify-between text-sm">
+                            <span className="text-muted-foreground flex items-center">
+                              <Database className="h-3 w-3 mr-1" />
+                              数据库:
+                            </span>
+                            <code className="text-xs bg-muted px-2 py-0.5 rounded max-w-[150px] truncate">
+                              {collection.databaseAddress}
+                            </code>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">最后更新:</span>
                           <span>{collection.lastUpdated}</span>
@@ -1240,6 +1289,15 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   <SelectItem value="通用">通用</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>数据库地址</Label>
+              <Input
+                value={editFormData.databaseAddress}
+                onChange={(e) => setEditFormData({ ...editFormData, databaseAddress: e.target.value })}
+                placeholder="https://pinecone.io/my-index"
+              />
+              <p className="text-xs text-muted-foreground mt-1">向量数据库地址（可选）</p>
             </div>
             <div>
               <Label>描述</Label>
