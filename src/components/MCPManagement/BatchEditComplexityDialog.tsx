@@ -68,7 +68,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-visible">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>批量修改复杂度</DialogTitle>
           <DialogDescription>
@@ -76,7 +76,8 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+        {/* 使用 py-4 增加上下内边距，避免焦点环被裁剪 */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 -mx-6 space-y-4">
           {complexities.map((complexity, index) => {
             const update = updates[complexity.id];
             
@@ -85,7 +86,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
             const displayDescription = update !== undefined ? update.description : complexity.description;
             
             return (
-              <div key={complexity.id} className="space-y-3">
+              <div key={complexity.id} className="space-y-3 pb-2">
                 <div className="space-y-2">
                   <Label>复杂度级别 {index + 1} 名称</Label>
                   <Input
