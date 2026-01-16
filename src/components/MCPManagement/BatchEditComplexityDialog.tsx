@@ -68,8 +68,8 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col px-6">
-        <DialogHeader className="px-0">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-visible">
+        <DialogHeader>
           <DialogTitle>批量修改复杂度</DialogTitle>
           <DialogDescription>
             统一修改所有区域中的复杂度级别名称和描述
