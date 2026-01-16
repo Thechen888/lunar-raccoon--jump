@@ -99,11 +99,11 @@
     @apply bg-background text-foreground;
   }
 
-  /* 统一焦点样式 - 输入框、选择框、文本区域 */
+  /* 统一焦点样式 - 使用ring-1让焦点边框更细、更贴合 */
   input:not([type="checkbox"]):not([type="radio"]):focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-0;
+    @apply outline-none ring-1 ring-ring ring-offset-0;
   }
 
   /* 确保对话框内容区域不会溢出 */
