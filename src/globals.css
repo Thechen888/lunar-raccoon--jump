@@ -99,11 +99,11 @@
     @apply bg-background text-foreground;
   }
 
-  /* 优化输入框和选择框的焦点样式 */
-  input,
-  textarea,
-  select {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  /* 优化输入框和选择框的焦点样式 - 移除offset让焦点边框直接贴合 */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-0;
   }
 
   /* 确保对话框内容区域不会溢出 */
