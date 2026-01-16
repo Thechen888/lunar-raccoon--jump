@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Plus, Trash2, Upload, RefreshCw, Search, File, Edit, X, ChevronDown, ChevronRight, MessageSquare, Download, Eye, Loader2, Database } from "lucide-react";
 import { toast } from "sonner";
 
