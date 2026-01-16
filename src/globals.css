@@ -104,13 +104,13 @@
     @apply outline-none ring-2 ring-ring;
   }
 
-  /* 选择框和文本框：添加ring-offset让焦点更贴合 */
+  /* 选择框和文本框：使用ring-offset-0让光环直接紧贴 */
   textarea:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-1;
+    @apply outline-none ring-2 ring-ring ring-offset-0;
   }
 
   select:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-1;
+    @apply outline-none ring-2 ring-ring ring-offset-0;
   }
 
   /* 确保对话框内容区域不会溢出 */
