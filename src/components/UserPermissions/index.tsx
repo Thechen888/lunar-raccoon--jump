@@ -263,7 +263,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                         <DialogDescription>添加用户并分配角色</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div>
+                        <div className="space-y-2">
                           <Label>姓名</Label>
                           <Input 
                             placeholder="输入用户姓名" 
@@ -271,7 +271,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                             onChange={(e) => setNewUserName(e.target.value)}
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>邮箱</Label>
                           <Input 
                             placeholder="user@example.com" 
@@ -279,7 +279,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                             onChange={(e) => setNewUserEmail(e.target.value)}
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>角色</Label>
                           <Select value={newUserRoleId} onValueChange={setNewUserRoleId}>
                             <SelectTrigger>
@@ -339,7 +339,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                       <DialogDescription>创建新角色并配置权限</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <div>
+                      <div className="space-y-2">
                         <Label>角色名称</Label>
                         <Input 
                           placeholder="输入角色名称" 
@@ -347,7 +347,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                           onChange={(e) => setNewRoleName(e.target.value)}
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>描述</Label>
                         <Textarea 
                           placeholder="描述这个角色的用途"
@@ -449,7 +449,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
               <DialogDescription>编辑角色的名称和描述</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label>角色名称</Label>
                 <Input
                   value={editFormData.name}
@@ -457,7 +457,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                   placeholder="输入角色名称"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>描述</Label>
                 <Textarea
                   value={editFormData.description}

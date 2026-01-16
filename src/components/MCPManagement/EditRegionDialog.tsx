@@ -42,7 +42,7 @@ export const EditRegionDialog = ({ open, onOpenChange, region, onSave, mode }: E
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>名称 <span className="text-red-500">*</span></Label>
             <Input
               value={name}

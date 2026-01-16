@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
@@ -141,7 +140,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
           </div>
         </ScrollArea>
         {selectedCollectionIds.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="flex flex-wrap gap-1 mt-2">
             {selectedCollectionIds.map((id) => {
               const collection = documentCollections.find(c => c.id === id);
               return (

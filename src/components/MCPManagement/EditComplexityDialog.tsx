@@ -42,7 +42,7 @@ export const EditComplexityDialog = ({ open, onOpenChange, complexity, onSave, m
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>名称 <span className="text-red-500">*</span></Label>
             <Input
               value={name}
@@ -50,7 +50,7 @@ export const EditComplexityDialog = ({ open, onOpenChange, complexity, onSave, m
               placeholder="例如：精简"
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>描述</Label>
             <Textarea
               value={description}
