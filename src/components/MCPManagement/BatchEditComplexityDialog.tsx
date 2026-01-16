@@ -68,7 +68,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col px-6">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col px-6">
         <DialogHeader>
           <DialogTitle>批量修改复杂度</DialogTitle>
           <DialogDescription>
@@ -76,7 +76,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
+        <div className="flex-1 overflow-y-auto space-y-4 py-4">
           {complexities.map((complexity, index) => {
             const update = updates[complexity.id];
             
