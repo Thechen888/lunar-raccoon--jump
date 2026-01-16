@@ -8,7 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Globe, Zap, MessageSquare, Lock } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
+import { Search, Globe, Zap, Code, MessageSquare, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export interface MCPServiceConfig {
@@ -157,7 +159,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
               <CardTitle className="text-lg">配置服务</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              <div>
                 <Label>
                   服务名称 <span className="text-red-500">*</span>
                 </Label>
@@ -167,7 +169,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   placeholder="例如：PANGU-中国-精简"
                 />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label>描述</Label>
                 <Textarea
                   value={description}
@@ -176,7 +178,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   rows={2}
                 />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label>
                   URL <span className="text-red-500">*</span>
                 </Label>
@@ -185,9 +187,9 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://api.example.com/mcp"
                 />
-                <p className="text-xs text-muted-foreground">远程URL地址</p>
+                <p className="text-xs text-muted-foreground mt-1">远程URL地址</p>
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label>请求头</Label>
                 <Textarea
                   value={headers}
@@ -195,7 +197,7 @@ export const MCPProviderConfig = ({ initialData, onSave, onCancel }: MCPProvider
                   placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}'
                   rows={4}
                 />
-                <p className="text-xs text-muted-foreground">HTTP 请求的自定义请求头（JSON格式）</p>
+                <p className="text-xs text-muted-foreground mt-1">HTTP 请求的自定义请求头（JSON格式）</p>
               </div>
             </CardContent>
           </Card>
