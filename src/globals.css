@@ -99,16 +99,9 @@
     @apply bg-background text-foreground;
   }
 
-  /* 统一焦点样式 */
-  input:not([type="checkbox"]):not([type="radio"]):focus-visible {
-    @apply outline-none ring-2 ring-ring;
-  }
-
-  /* 选择框和文本框：使用ring-offset-0让光环直接紧贴 */
-  textarea:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-0;
-  }
-
+  /* 统一焦点样式 - 输入框、选择框、文本区域 */
+  input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+  textarea:focus-visible,
   select:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-0;
   }
