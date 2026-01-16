@@ -103,7 +103,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
               <SelectItem key={model.id} value={model.id} className="text-sm">
                 <div className="flex items-center space-x-2">
                   <span>{model.name}</span>
-                  <Badge variant="outline" className="text-xs scale-75">{model.provider}</Badge>
+                  <Badge variant="outline" className="text-xs">{model.provider}</Badge>
                 </div>
               </SelectItem>
             ))}
@@ -129,7 +129,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
                   className="flex-1 flex items-center justify-between cursor-pointer text-sm"
                 >
                   <span>{collection.name}</span>
-                  <Badge variant="outline" className="text-xs scale-75">{collection.type}</Badge>
+                  <Badge variant="outline" className="text-xs">{collection.type}</Badge>
                 </label>
               </div>
             ))}
