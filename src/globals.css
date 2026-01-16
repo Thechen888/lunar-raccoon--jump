@@ -99,11 +99,10 @@
     @apply bg-background text-foreground;
   }
 
-  /* 统一所有输入元素和交互元素的焦点样式 */
+  /* 只为输入框、文本框和选择框添加焦点样式 */
   input:focus-visible,
   textarea:focus-visible,
-  select:focus-visible,
-  button:focus-visible {
+  select:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-0;
   }
 
