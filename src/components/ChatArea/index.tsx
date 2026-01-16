@@ -22,12 +22,11 @@ interface Message {
     modelName: string;
     provider: string;
   };
-  documentCollectionInfo?: {
+  documentCollectionInfo?: Array<{
     id: string;
     name: string;
     type: string;
-  };
-  databaseAddress?: string;
+  }>;
 }
 
 interface ModelConfig {
@@ -58,8 +57,7 @@ interface ChatAreaProps {
 
 const defaultConfig = {
   modelId: "model-1",
-  documentCollectionId: undefined,
-  databaseAddress: undefined
+  documentCollectionIds: undefined
 };
 
 export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaProps) => {
@@ -77,8 +75,7 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
   // 从 localStorage 加载配置，如果没有则使用默认配置
   const [chatConfig, setChatConfig] = useState<{
     modelId: string;
-    documentCollectionId?: string;
-    databaseAddress?: string;
+    documentCollectionIds?: string[];
   }>(() => {
     try {
       const saved = localStorage.getItem('chatConfig');
@@ -124,10 +121,9 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
     };
 
     // 如果选择了文档集，添加文档集信息
-    if (chatConfig.documentCollectionId) {
-      const collection = availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId);
-      userMessage.documentCollectionInfo = collection;
-      userMessage.databaseAddress = chatConfig.databaseAddress;
+    if (chatConfig.documentCollectionIds && chatConfig.documentCollectionIds.length > 0) {
+      const collections = availableDocumentCollections.filter(c => chatConfig.documentCollectionIds?.includes(c.id));
+      userMessage.documentCollectionInfo = collections;
     }
 
     setMessages((prev) => [...prev, userMessage]);
@@ -145,10 +141,9 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
       };
 
       // 如果选择了文档集，添加文档集信息到回复
-      if (chatConfig.documentCollectionId) {
-        const collection = availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId);
-        assistantMessage.documentCollectionInfo = collection;
-        assistantMessage.databaseAddress = chatConfig.databaseAddress;
+      if (chatConfig.documentCollectionIds && chatConfig.documentCollectionIds.length > 0) {
+        const collections = availableDocumentCollections.filter(c => chatConfig.documentCollectionIds?.includes(c.id));
+        assistantMessage.documentCollectionInfo = collections;
         assistantMessage.content += `\n\n检索到的相关文档已用于生成答案。`;
       }
 
@@ -160,6 +155,11 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
   const getProviderName = (providerId: string) => {
     return mcpProviders.find(p => p.id === providerId)?.name || providerId;
   };
+
+  // 获取选中的文档集
+  const selectedCollections = chatConfig.documentCollectionIds 
+    ? availableDocumentCollections.filter(c => chatConfig.documentCollectionIds.includes(c.id))
+    : [];
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
@@ -224,16 +224,11 @@ export const ChatArea = ({ selectedMCPs, onMCPSelect, mcpProviders }: ChatAreaPr
                   {availableModels.find(m => m.id === chatConfig.modelId)?.name}
                 </Badge>
               )}
-              {chatConfig.documentCollectionId && availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId) && (
-                <Badge variant="outline" className="text-xs">
-                  {availableDocumentCollections.find(c => c.id === chatConfig.documentCollectionId)?.name}
+              {selectedCollections.map((collection) => (
+                <Badge key={collection.id} variant="outline" className="text-xs">
+                  {collection.name}
                 </Badge>
-              )}
-              {chatConfig.databaseAddress && (
-                <Badge variant="secondary" className="text-xs">
-                  {chatConfig.databaseAddress}
-                </Badge>
-              )}
+              ))}
               {selectedMCPs.map((selection) => {
                 const provider = mcpProviders.find(p => p.id === selection.providerId);
                 const selectedRegions = provider?.regions?.filter(r => selection.regionIds.includes(r.id)) || [];
