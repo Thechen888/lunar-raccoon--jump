@@ -102,14 +102,14 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>配置提示词 - {model?.id}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+        <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
           {/* 提示词列表 */}
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
             {prompts.map((prompt) => (
               <div
                 key={prompt.id}
@@ -155,7 +155,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
           </div>
 
           {/* 添加/编辑表单 */}
-          <div className="border-t pt-4 space-y-3">
+          <div className="border-t pt-4 space-y-3 px-6">
             <div className="flex items-center justify-between">
               <Label>{editingPrompt ? "编辑提示词" : "添加新提示词"}</Label>
               {editingPrompt && (
