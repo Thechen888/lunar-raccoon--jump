@@ -49,16 +49,17 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>名称 <span className="text-red-500">*</span></Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：PANGU"
+              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           {mode === "create" && (
-            <div>
+            <div className="space-y-2">
               <Label>层级结构 <span className="text-red-500">*</span></Label>
               <RadioGroup value={layer.toString()} onValueChange={(v) => setLayer(parseInt(v))}>
                 <div className="flex items-center space-x-2 mb-2">

@@ -42,21 +42,23 @@ export const EditComplexityDialog = ({ open, onOpenChange, complexity, onSave, m
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>名称 <span className="text-red-500">*</span></Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：精简"
+              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>描述</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="描述这个复杂度级别..."
               rows={3}
+              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
         </div>

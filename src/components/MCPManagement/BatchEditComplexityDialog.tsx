@@ -86,7 +86,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
             
             return (
               <div key={complexity.id} className="space-y-3">
-                <div>
+                <div className="space-y-2">
                   <Label>复杂度级别 {index + 1} 名称</Label>
                   <Input
                     value={displayName}
@@ -95,7 +95,7 @@ export const BatchEditComplexityDialog = ({ open, onOpenChange, complexities, on
                     className="w-full focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>描述</Label>
                   <Input
                     value={displayDescription || ""}

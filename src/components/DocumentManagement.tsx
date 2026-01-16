@@ -598,21 +598,22 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div>
+                        <div className="space-y-2">
                           <Label>名称</Label>
                           <Input 
                             placeholder="输入文档集名称" 
                             value={addCollectionFormData.name}
                             onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, name: e.target.value })}
+                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>类型</Label>
                           <Select
                             value={addCollectionFormData.type}
                             onValueChange={(value) => setAddCollectionFormData({ ...addCollectionFormData, type: value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
                               <SelectValue placeholder="选择类型" />
                             </SelectTrigger>
                             <SelectContent>
@@ -624,21 +625,23 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             </SelectContent>
                           </Select>
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>数据库地址</Label>
                           <Input 
                             placeholder="https://pinecone.io/my-index" 
                             value={addCollectionFormData.databaseAddress}
                             onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, databaseAddress: e.target.value })}
+                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                           <p className="text-xs text-muted-foreground mt-1">向量数据库地址（可选）</p>
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>描述</Label>
                           <Textarea 
                             placeholder="描述这个文档集的用途"
                             value={addCollectionFormData.description}
                             onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, description: e.target.value })}
+                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                       </div>
@@ -751,13 +754,13 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div>
+                        <div className="space-y-2">
                           <Label>选择文档集</Label>
                           <Select
                             value={uploadFormData.collectionId}
                             onValueChange={(value) => setUploadFormData({ ...uploadFormData, collectionId: value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
                               <SelectValue placeholder="选择文档集" />
                             </SelectTrigger>
                             <SelectContent>
@@ -767,29 +770,31 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             </SelectContent>
                           </Select>
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>标签（用逗号分隔）</Label>
                           <Input
                             placeholder="例如：技术, React, 前端"
                             value={uploadFormData.tags.join(", ")}
                             onChange={(e) => setUploadFormData({ ...uploadFormData, tags: e.target.value.split(",").map(t => t.trim()).filter(t => t) })}
+                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>描述</Label>
                           <Textarea
                             placeholder="文档描述..."
                             value={uploadFormData.description}
                             onChange={(e) => setUploadFormData({ ...uploadFormData, description: e.target.value })}
+                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>文件</Label>
                           <div className="mt-2">
                             <Input 
                               type="file" 
                               multiple
-                              className="cursor-pointer"
+                              className="cursor-pointer focus-visible:ring-0 focus-visible:ring-offset-0"
                               onChange={handleFileSelect}
                             />
                             <p className="text-xs text-muted-foreground mt-1">
@@ -870,11 +875,11 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     placeholder="搜索文档..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
+                    className="pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
                 <Select value={selectedCollection || "all"} onValueChange={(v) => setSelectedCollection(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] focus-visible:ring-0 focus-visible:ring-offset-0">
                     <SelectValue placeholder="文档集" />
                   </SelectTrigger>
                   <SelectContent>
@@ -885,7 +890,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectContent>
                 </Select>
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[150px] focus-visible:ring-0 focus-visible:ring-offset-0">
                     <SelectValue placeholder="文件类型" />
                   </SelectTrigger>
                   <SelectContent>
@@ -981,11 +986,11 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     placeholder="搜索问答..."
                     value={qaSearchTerm}
                     onChange={(e) => setQaSearchTerm(e.target.value)}
-                    className="pl-8"
+                    className="pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
                 <Select value={qaStatusFilter} onValueChange={(v: any) => setQaStatusFilter(v)}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[150px] focus-visible:ring-0 focus-visible:ring-offset-0">
                     <SelectValue placeholder="状态" />
                   </SelectTrigger>
                   <SelectContent>
@@ -996,7 +1001,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectContent>
                 </Select>
                 <Select value={qaDocumentFilter} onValueChange={setQaDocumentFilter}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] focus-visible:ring-0 focus-visible:ring-offset-0">
                     <SelectValue placeholder="文档" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1211,30 +1216,32 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label>问题</Label>
               <Input
                 value={qaFormData.question}
                 onChange={(e) => setQaFormData({ ...qaFormData, question: e.target.value })}
                 placeholder="输入问题"
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>答案</Label>
               <Textarea
                 value={qaFormData.answer}
                 onChange={(e) => setQaFormData({ ...qaFormData, answer: e.target.value })}
                 placeholder="输入答案"
                 rows={4}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>状态</Label>
               <Select
                 value={qaFormData.status}
                 onValueChange={(value: "active" | "inactive") => setQaFormData({ ...qaFormData, status: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
                   <SelectValue placeholder="选择状态" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1264,21 +1271,22 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
             </CardDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label>名称</Label>
               <Input
                 value={editFormData.name}
                 onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                 placeholder="输入文档集名称"
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>类型</Label>
               <Select
                 value={editFormData.type}
                 onValueChange={(value) => setEditFormData({ ...editFormData, type: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
                   <SelectValue placeholder="选择类型" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1290,21 +1298,23 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>数据库地址</Label>
               <Input
                 value={editFormData.databaseAddress}
                 onChange={(e) => setEditFormData({ ...editFormData, databaseAddress: e.target.value })}
                 placeholder="https://pinecone.io/my-index"
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <p className="text-xs text-muted-foreground mt-1">向量数据库地址（可选）</p>
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>描述</Label>
               <Textarea
                 value={editFormData.description}
                 onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                 placeholder="描述这个文档集的用途"
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
           </div>

@@ -95,7 +95,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
       <div className="space-y-2">
         <Label className="text-xs font-medium">选择模型</Label>
         <Select value={modelId} onValueChange={handleModelChange}>
-          <SelectTrigger className="h-8 text-sm overflow-hidden">
+          <SelectTrigger className="h-8 text-sm focus-visible:ring-0 focus-visible:ring-offset-0">
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px]">

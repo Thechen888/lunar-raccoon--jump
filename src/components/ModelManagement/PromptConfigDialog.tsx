@@ -164,7 +164,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                 </Button>
               )}
             </div>
-            <div>
+            <div className="space-y-2">
               <Label className="text-xs">名称</Label>
               <Input
                 value={newPromptName}
@@ -173,7 +173,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                 className="h-8 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label className="text-xs">内容</Label>
               <Textarea
                 value={newPromptContent}
