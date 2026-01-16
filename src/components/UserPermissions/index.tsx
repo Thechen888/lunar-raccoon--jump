@@ -246,13 +246,13 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                   <CardDescription>从外部API同步用户并分配角色</CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button onClick={handleSyncFromAPI} disabled={syncLoading} variant="outline">
+                  <Button onClick={handleSyncFromAPI} disabled={syncLoading} variant="outline" className="focus-visible:ring-2 focus-visible:ring-ring">
                     <RefreshCw className={`h-4 w-4 mr-2 ${syncLoading ? "animate-spin" : ""}`} />
                     从API同步
                   </Button>
                   <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button className="focus-visible:ring-2 focus-visible:ring-ring">
                         <Plus className="h-4 w-4 mr-2" />
                         添加用户
                       </Button>
@@ -269,7 +269,6 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                             placeholder="输入用户姓名" 
                             value={newUserName}
                             onChange={(e) => setNewUserName(e.target.value)}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                         <div className="space-y-2">
@@ -278,13 +277,12 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                             placeholder="user@example.com" 
                             value={newUserEmail}
                             onChange={(e) => setNewUserEmail(e.target.value)}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                         <div className="space-y-2">
                           <Label>角色</Label>
                           <Select value={newUserRoleId} onValueChange={setNewUserRoleId}>
-                            <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <SelectTrigger>
                               <SelectValue placeholder="选择角色" />
                             </SelectTrigger>
                             <SelectContent>
@@ -298,10 +296,10 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setIsAddUserDialogOpen(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
                           取消
                         </Button>
-                        <Button onClick={handleAddUser}>添加</Button>
+                        <Button onClick={handleAddUser} className="focus-visible:ring-2 focus-visible:ring-ring">添加</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -310,7 +308,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
             </CardHeader>
             <CardContent>
               <div className="mb-4">
-                <Input placeholder="搜索用户..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-sm focus-visible:ring-0 focus-visible:ring-offset-0" />
+                <Input placeholder="搜索用户..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-sm" />
               </div>
               <UserList users={filteredUsers} roles={roles} onToggleStatus={handleToggleUserStatus} onDelete={handleDeleteUser} />
             </CardContent>
@@ -330,7 +328,7 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                 </div>
                 <Dialog open={isAddRoleDialogOpen} onOpenChange={setIsAddRoleDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button>
+                    <Button className="focus-visible:ring-2 focus-visible:ring-ring">
                       <Plus className="h-4 w-4 mr-2" />
                       添加角色
                     </Button>
@@ -347,7 +345,6 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                           placeholder="输入角色名称" 
                           value={newRoleName}
                           onChange={(e) => setNewRoleName(e.target.value)}
-                          className="focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                       </div>
                       <div className="space-y-2">
@@ -356,15 +353,14 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                           placeholder="描述这个角色的用途"
                           value={newRoleDescription}
                           onChange={(e) => setNewRoleDescription(e.target.value)}
-                          className="focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsAddRoleDialogOpen(false)}>
+                      <Button variant="outline" onClick={() => setIsAddRoleDialogOpen(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
                         取消
                       </Button>
-                      <Button onClick={handleAddRole}>添加</Button>
+                      <Button onClick={handleAddRole} className="focus-visible:ring-2 focus-visible:ring-ring">添加</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -459,7 +455,6 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                   placeholder="输入角色名称"
-                  className="focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
               <div className="space-y-2">
@@ -469,15 +464,14 @@ export const UserPermissions = ({ currentUser }: UserPermissionsProps) => {
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                   placeholder="描述这个角色的用途"
                   rows={3}
-                  className="focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingRole(null)}>
+              <Button variant="outline" onClick={() => setEditingRole(null)} className="focus-visible:ring-2 focus-visible:ring-ring">
                 取消
               </Button>
-              <Button onClick={handleSaveEditRole}>保存</Button>
+              <Button onClick={handleSaveEditRole} className="focus-visible:ring-2 focus-visible:ring-ring">保存</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -84,7 +84,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
           variant="outline" 
           size="sm" 
           onClick={handleClear}
-          className="h-6 px-2 text-xs"
+          className="h-6 px-2 text-xs focus-visible:ring-2 focus-visible:ring-ring"
         >
           <RotateCcw className="h-3 w-3 mr-1" />
           清空
@@ -95,7 +95,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
       <div className="space-y-2">
         <Label className="text-xs font-medium">选择模型</Label>
         <Select value={modelId} onValueChange={handleModelChange}>
-          <SelectTrigger className="h-8 text-sm focus-visible:ring-0 focus-visible:ring-offset-0">
+          <SelectTrigger className="h-8 text-sm">
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px]">
@@ -122,7 +122,7 @@ export const ChatConfig = ({ models, documentCollections, onConfigChange, curren
                   id={`collection-${collection.id}`}
                   checked={selectedCollectionIds.includes(collection.id)}
                   onCheckedChange={() => handleToggleCollection(collection.id)}
-                  className="h-4 w-4"
+                  className="h-4 w-4 focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <label
                   htmlFor={`collection-${collection.id}`}

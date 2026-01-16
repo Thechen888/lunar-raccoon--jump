@@ -55,7 +55,6 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：PANGU"
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           {mode === "create" && (
@@ -63,7 +62,7 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
               <Label>层级结构 <span className="text-red-500">*</span></Label>
               <RadioGroup value={layer.toString()} onValueChange={(v) => setLayer(parseInt(v))}>
                 <div className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value="1" id="layer-1" />
+                  <RadioGroupItem value="1" id="layer-1" className="focus-visible:ring-2 focus-visible:ring-ring" />
                   <Label htmlFor="layer-1" className="cursor-pointer">
                     <div>
                       <span className="font-medium">一层</span>
@@ -72,7 +71,7 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value="2" id="layer-2" />
+                  <RadioGroupItem value="2" id="layer-2" className="focus-visible:ring-2 focus-visible:ring-ring" />
                   <Label htmlFor="layer-2" className="cursor-pointer">
                     <div>
                       <span className="font-medium">二层</span>
@@ -81,7 +80,7 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="3" id="layer-3" />
+                  <RadioGroupItem value="3" id="layer-3" className="focus-visible:ring-2 focus-visible:ring-ring" />
                   <Label htmlFor="layer-3" className="cursor-pointer">
                     <div>
                       <span className="font-medium">三层</span>
@@ -94,10 +93,10 @@ export const EditProviderDialog = ({ open, onOpenChange, provider, onSave, mode 
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
             取消
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="focus-visible:ring-2 focus-visible:ring-ring">
             {mode === "create" ? "添加" : "保存"}
           </Button>
         </DialogFooter>

@@ -579,13 +579,13 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing}>
+                  <Button variant="outline" onClick={handleApiSync} disabled={apiSyncing} className="focus-visible:ring-2 focus-visible:ring-ring">
                     <RefreshCw className={`h-4 w-4 mr-2 ${apiSyncing ? "animate-spin" : ""}`} />
                     API同步
                   </Button>
                   <Dialog open={isAddCollectionDialogOpen} onOpenChange={setIsAddCollectionDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button className="focus-visible:ring-2 focus-visible:ring-ring">
                         <Plus className="h-4 w-4 mr-2" />
                         创建文档集
                       </Button>
@@ -604,7 +604,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             placeholder="输入文档集名称" 
                             value={addCollectionFormData.name}
                             onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, name: e.target.value })}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                         <div className="space-y-2">
@@ -613,7 +612,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             value={addCollectionFormData.type}
                             onValueChange={(value) => setAddCollectionFormData({ ...addCollectionFormData, type: value })}
                           >
-                            <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <SelectTrigger>
                               <SelectValue placeholder="选择类型" />
                             </SelectTrigger>
                             <SelectContent>
@@ -631,7 +630,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             placeholder="https://pinecone.io/my-index" 
                             value={addCollectionFormData.databaseAddress}
                             onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, databaseAddress: e.target.value })}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                           <p className="text-xs text-muted-foreground mt-1">向量数据库地址（可选）</p>
                         </div>
@@ -641,7 +639,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             placeholder="描述这个文档集的用途"
                             value={addCollectionFormData.description}
                             onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, description: e.target.value })}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                       </div>
@@ -649,10 +646,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                         <Button variant="outline" onClick={() => {
                           setIsAddCollectionDialogOpen(false);
                           setAddCollectionFormData({ name: "", type: "", description: "", databaseAddress: "" });
-                        }}>
+                        }} className="focus-visible:ring-2 focus-visible:ring-ring">
                           取消
                         </Button>
-                        <Button onClick={handleAddCollection}>创建</Button>
+                        <Button onClick={handleAddCollection} className="focus-visible:ring-2 focus-visible:ring-ring">创建</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -707,7 +704,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           ))}
                         </div>
                         <div className="flex space-x-2 mt-4">
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClick(collection)}>
+                          <Button variant="outline" size="sm" className="flex-1 focus-visible:ring-2 focus-visible:ring-ring" onClick={() => handleEditClick(collection)}>
                             <Edit className="h-4 w-4 mr-1" />
                             编辑
                           </Button>
@@ -715,6 +712,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleDeleteCollection(collection.id)}
+                            className="focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -741,7 +739,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 <div className="flex items-center space-x-2">
                   <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button className="focus-visible:ring-2 focus-visible:ring-ring">
                         <Upload className="h-4 w-4 mr-2" />
                         上传文档
                       </Button>
@@ -760,7 +758,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             value={uploadFormData.collectionId}
                             onValueChange={(value) => setUploadFormData({ ...uploadFormData, collectionId: value })}
                           >
-                            <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <SelectTrigger>
                               <SelectValue placeholder="选择文档集" />
                             </SelectTrigger>
                             <SelectContent>
@@ -776,7 +774,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             placeholder="例如：技术, React, 前端"
                             value={uploadFormData.tags.join(", ")}
                             onChange={(e) => setUploadFormData({ ...uploadFormData, tags: e.target.value.split(",").map(t => t.trim()).filter(t => t) })}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                         <div className="space-y-2">
@@ -785,7 +782,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             placeholder="文档描述..."
                             value={uploadFormData.description}
                             onChange={(e) => setUploadFormData({ ...uploadFormData, description: e.target.value })}
-                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                         <div className="space-y-2">
@@ -794,7 +790,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             <Input 
                               type="file" 
                               multiple
-                              className="cursor-pointer focus-visible:ring-0 focus-visible:ring-offset-0"
+                              className="cursor-pointer"
                               onChange={handleFileSelect}
                             />
                             <p className="text-xs text-muted-foreground mt-1">
@@ -811,7 +807,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setSelectedFiles([])}
-                                className="h-6 px-2 text-xs"
+                                className="h-6 px-2 text-xs focus-visible:ring-2 focus-visible:ring-ring"
                               >
                                 清空
                               </Button>
@@ -834,7 +830,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleRemoveFile(index)}
-                                      className="h-6 w-6 p-0"
+                                      className="h-6 w-6 p-0 focus-visible:ring-2 focus-visible:ring-ring"
                                     >
                                       <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                                     </Button>
@@ -855,10 +851,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                           setIsUploadDialogOpen(false);
                           setSelectedFiles([]);
                           setUploadFormData({ collectionId: "", tags: [], description: "" });
-                        }}>
+                        }} className="focus-visible:ring-2 focus-visible:ring-ring">
                           取消
                         </Button>
-                        <Button onClick={handleUploadDocuments} disabled={processing || selectedFiles.length === 0}>
+                        <Button onClick={handleUploadDocuments} disabled={processing || selectedFiles.length === 0} className="focus-visible:ring-2 focus-visible:ring-ring">
                           {processing ? "上传中..." : `上传 ${selectedFiles.length} 个文档`}
                         </Button>
                       </DialogFooter>
@@ -875,11 +871,11 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     placeholder="搜索文档..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="pl-8"
                   />
                 </div>
                 <Select value={selectedCollection || "all"} onValueChange={(v) => setSelectedCollection(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[200px] focus-visible:ring-0 focus-visible:ring-offset-0">
+                  <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="文档集" />
                   </SelectTrigger>
                   <SelectContent>
@@ -890,7 +886,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectContent>
                 </Select>
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-[150px] focus-visible:ring-0 focus-visible:ring-offset-0">
+                  <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="文件类型" />
                   </SelectTrigger>
                   <SelectContent>
@@ -934,6 +930,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             variant="outline"
                             size="sm"
                             onClick={() => handleDownloadDocument(doc)}
+                            className="focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
@@ -943,6 +940,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             onClick={() => handleViewMarkdown(doc)}
                             disabled={doc.conversionStatus !== "completed"}
                             title={doc.conversionStatus === "completed" ? "查看Markdown" : "文档尚未转换为Markdown"}
+                            className="focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -950,6 +948,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteDocument(doc.id)}
+                            className="focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -986,11 +985,11 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     placeholder="搜索问答..."
                     value={qaSearchTerm}
                     onChange={(e) => setQaSearchTerm(e.target.value)}
-                    className="pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="pl-8"
                   />
                 </div>
                 <Select value={qaStatusFilter} onValueChange={(v: any) => setQaStatusFilter(v)}>
-                  <SelectTrigger className="w-[150px] focus-visible:ring-0 focus-visible:ring-offset-0">
+                  <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="状态" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1001,7 +1000,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                   </SelectContent>
                 </Select>
                 <Select value={qaDocumentFilter} onValueChange={setQaDocumentFilter}>
-                  <SelectTrigger className="w-[200px] focus-visible:ring-0 focus-visible:ring-offset-0">
+                  <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="文档" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1016,7 +1015,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     variant={qaViewMode === "grouped" ? "secondary" : "ghost"}
                     size="sm"
                     onClick={() => setQaViewMode("grouped")}
-                    className="h-7 px-3 text-xs"
+                    className="h-7 px-3 text-xs focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     按文档分组
                   </Button>
@@ -1024,7 +1023,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                     variant={qaViewMode === "list" ? "secondary" : "ghost"}
                     size="sm"
                     onClick={() => setQaViewMode("list")}
-                    className="h-7 px-3 text-xs"
+                    className="h-7 px-3 text-xs focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     列表视图
                   </Button>
@@ -1085,6 +1084,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleEditQa(qa)}
+                                      className="focus-visible:ring-2 focus-visible:ring-ring"
                                     >
                                       <Edit className="h-4 w-4" />
                                     </Button>
@@ -1092,6 +1092,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleDeleteQa(qa.id)}
+                                      className="focus-visible:ring-2 focus-visible:ring-ring"
                                     >
                                       <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
@@ -1144,6 +1145,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditQa(qa)}
+                              className="focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -1151,6 +1153,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteQa(qa.id)}
+                              className="focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -1193,14 +1196,14 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
             </div>
           )}
           <DialogFooter className="flex-shrink-0 pt-4">
-            <Button variant="outline" onClick={() => setViewMarkdownDoc(null)}>
+            <Button variant="outline" onClick={() => setViewMarkdownDoc(null)} className="focus-visible:ring-2 focus-visible:ring-ring">
               关闭
             </Button>
             <Button onClick={() => {
               if (viewMarkdownDoc?.markdownContent) {
                 toast.success("Markdown已复制到剪贴板");
               }
-            }}>
+            }} className="focus-visible:ring-2 focus-visible:ring-ring">
               复制Markdown
             </Button>
           </DialogFooter>
@@ -1222,7 +1225,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 value={qaFormData.question}
                 onChange={(e) => setQaFormData({ ...qaFormData, question: e.target.value })}
                 placeholder="输入问题"
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
             <div className="space-y-2">
@@ -1232,7 +1234,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 onChange={(e) => setQaFormData({ ...qaFormData, answer: e.target.value })}
                 placeholder="输入答案"
                 rows={4}
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
             <div className="space-y-2">
@@ -1241,7 +1242,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 value={qaFormData.status}
                 onValueChange={(value: "active" | "inactive") => setQaFormData({ ...qaFormData, status: value })}
               >
-                <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                <SelectTrigger>
                   <SelectValue placeholder="选择状态" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1252,10 +1253,10 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditQaDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsEditQaDialogOpen(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
               取消
             </Button>
-            <Button onClick={handleSaveQa}>
+            <Button onClick={handleSaveQa} className="focus-visible:ring-2 focus-visible:ring-ring">
               保存
             </Button>
           </DialogFooter>
@@ -1277,7 +1278,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 value={editFormData.name}
                 onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                 placeholder="输入文档集名称"
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
             <div className="space-y-2">
@@ -1286,7 +1286,7 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 value={editFormData.type}
                 onValueChange={(value) => setEditFormData({ ...editFormData, type: value })}
               >
-                <SelectTrigger className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                <SelectTrigger>
                   <SelectValue placeholder="选择类型" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1304,7 +1304,6 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 value={editFormData.databaseAddress}
                 onChange={(e) => setEditFormData({ ...editFormData, databaseAddress: e.target.value })}
                 placeholder="https://pinecone.io/my-index"
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <p className="text-xs text-muted-foreground mt-1">向量数据库地址（可选）</p>
             </div>
@@ -1314,15 +1313,14 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                 value={editFormData.description}
                 onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                 placeholder="描述这个文档集的用途"
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingCollection(null)}>
+            <Button variant="outline" onClick={() => setEditingCollection(null)} className="focus-visible:ring-2 focus-visible:ring-ring">
               取消
             </Button>
-            <Button onClick={handleEditSave}>保存</Button>
+            <Button onClick={handleEditSave} className="focus-visible:ring-2 focus-visible:ring-ring">保存</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

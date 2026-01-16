@@ -127,7 +127,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                       size="sm"
                       onClick={() => handleEditPrompt(prompt)}
                       disabled={editingPrompt?.id === prompt.id}
-                      className="h-6 px-2 text-xs"
+                      className="h-6 px-2 text-xs focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       编辑
                     </Button>
@@ -135,7 +135,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeletePrompt(prompt.id)}
-                      className="h-6 px-2 text-xs text-destructive"
+                      className="h-6 px-2 text-xs text-destructive focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       删除
                     </Button>
@@ -159,7 +159,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
             <div className="flex items-center justify-between">
               <Label>{editingPrompt ? "编辑提示词" : "添加新提示词"}</Label>
               {editingPrompt && (
-                <Button variant="ghost" size="sm" onClick={handleCancelEdit} className="h-6 px-2 text-xs">
+                <Button variant="ghost" size="sm" onClick={handleCancelEdit} className="h-6 px-2 text-xs focus-visible:ring-2 focus-visible:ring-ring">
                   取消编辑
                 </Button>
               )}
@@ -170,7 +170,7 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                 value={newPromptName}
                 onChange={(e) => setNewPromptName(e.target.value)}
                 placeholder="例如：系统提示词"
-                className="h-8 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-8 text-sm"
               />
             </div>
             <div className="space-y-2">
@@ -180,13 +180,14 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
                 onChange={(e) => setNewPromptContent(e.target.value)}
                 placeholder="输入提示词内容..."
                 rows={3}
-                className="text-sm resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="text-sm resize-none"
               />
             </div>
             <div className="flex justify-end">
               <Button
                 onClick={editingPrompt ? handleUpdatePrompt : handleAddPrompt}
                 disabled={!newPromptName.trim() || !newPromptContent.trim()}
+                className="focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {editingPrompt ? "更新提示词" : "添加提示词"}
@@ -196,10 +197,10 @@ export const PromptConfigDialog = ({ open, onOpenChange, model, onSave }: Prompt
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
             取消
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="focus-visible:ring-2 focus-visible:ring-ring">
             保存配置
           </Button>
         </DialogFooter>

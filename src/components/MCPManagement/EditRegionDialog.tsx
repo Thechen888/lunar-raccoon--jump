@@ -48,15 +48,14 @@ export const EditRegionDialog = ({ open, onOpenChange, region, onSave, mode }: E
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：中国"
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
             取消
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="focus-visible:ring-2 focus-visible:ring-ring">
             {mode === "create" ? "添加" : "保存"}
           </Button>
         </DialogFooter>

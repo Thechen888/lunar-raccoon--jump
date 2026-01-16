@@ -48,7 +48,6 @@ export const EditComplexityDialog = ({ open, onOpenChange, complexity, onSave, m
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：精简"
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           <div className="space-y-2">
@@ -58,15 +57,14 @@ export const EditComplexityDialog = ({ open, onOpenChange, complexity, onSave, m
               onChange={(e) => setDescription(e.target.value)}
               placeholder="描述这个复杂度级别..."
               rows={3}
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="focus-visible:ring-2 focus-visible:ring-ring">
             取消
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="focus-visible:ring-2 focus-visible:ring-ring">
             {mode === "create" ? "添加" : "保存"}
           </Button>
         </DialogFooter>
