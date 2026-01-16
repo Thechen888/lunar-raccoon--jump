@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -353,9 +352,9 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
   const handleAddCollection = () => {
     const newCollection: DocumentCollection = {
       id: `coll-${Date.now()}`,
-      name: "新文档集",
-      type: "通用",
-      description: "",
+      name: addCollectionFormData.name || "新文档集",
+      type: addCollectionFormData.type || "通用",
+      description: addCollectionFormData.description || "",
       lastUpdated: new Date().toISOString().split('T')[0],
       status: "active",
       tags: [],
@@ -608,21 +607,11 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
                         </div>
                         <div className="space-y-2">
                           <Label>类型</Label>
-                          <Select
+                          <Input 
+                            placeholder="输入文档集类型" 
                             value={addCollectionFormData.type}
-                            onValueChange={(value) => setAddCollectionFormData({ ...addCollectionFormData, type: value })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="选择类型" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="技术文档">技术文档</SelectItem>
-                              <SelectItem value="业务文档">业务文档</SelectItem>
-                              <SelectItem value="法律文档">法律文档</SelectItem>
-                              <SelectItem value="知识库">知识库</SelectItem>
-                              <SelectItem value="通用">通用</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            onChange={(e) => setAddCollectionFormData({ ...addCollectionFormData, type: e.target.value })}
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label>数据库地址</Label>
@@ -1282,21 +1271,11 @@ React 提供了一种声明式的、高效的方式来构建用户界面。`
             </div>
             <div className="space-y-2">
               <Label>类型</Label>
-              <Select
+              <Input
                 value={editFormData.type}
-                onValueChange={(value) => setEditFormData({ ...editFormData, type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="选择类型" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="技术文档">技术文档</SelectItem>
-                  <SelectItem value="业务文档">业务文档</SelectItem>
-                  <SelectItem value="法律文档">法律文档</SelectItem>
-                  <SelectItem value="知识库">知识库</SelectItem>
-                  <SelectItem value="通用">通用</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                placeholder="输入文档集类型"
+              />
             </div>
             <div className="space-y-2">
               <Label>数据库地址</Label>
